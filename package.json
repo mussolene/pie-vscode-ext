@@ -4,7 +4,7 @@
   "description": "Working pie in vscode",
   "license": "MIT",
   "icon": "images/logo.png",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "publisher": "mussolene",
   "repository": {
     "type": "git",
@@ -201,17 +201,21 @@
     }
   },
   "devDependencies": {
-    "@types/vscode": "^1.78.0",
     "@types/glob": "^8.1.0",
     "@types/mocha": "^10.0.1",
     "@types/node": "16.x",
+    "@types/vscode": "^1.78.0",
+    "@vscode/test-electron": "^2.3.0",
     "eslint": "^8.39.0",
     "glob": "^8.1.0",
     "mocha": "^10.2.0",
-    "typescript": "^5.0.4",
-    "@vscode/test-electron": "^2.3.0"
+    "typescript": "^5.0.4"
   },
   "scripts": {
     "compile": "tsc -p ./"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "envfile": "^6.18.0"
   }
 }
