@@ -1,9 +1,3 @@
-# Change Log
+# 0.0.7
 
-All notable changes to the "pie-vscode" extension will be documented in this file.
-
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
-
-## [Unreleased]
-
-- Initial release
+- Добавлена возможность установки баз по щелчку правой клавиши в списке доступных баз
