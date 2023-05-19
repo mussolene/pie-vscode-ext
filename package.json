@@ -4,7 +4,7 @@
   "description": "Working pie in vscode",
   "license": "MIT",
   "icon": "images/logo.png",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "publisher": "mussolene",
   "repository": {
     "type": "git",
@@ -109,10 +109,36 @@
           "light": "images/light/refresh.svg",
           "dark": "images/dark/refresh.svg"
         }
+      },
+      {
+        "command": "pie-vscode.start1C",
+        "title": "Запустить 1С",
+        "icon": {
+          "light": "images/107.ico",
+          "dark": "images/107.ico"
+        }
+      },
+      {
+        "command": "pie-vscode.startDesigner",
+        "title": "Запустить конфигуратор",
+        "icon": {
+          "light": "images/45.ico",
+          "dark": "images/45.ico"
+        }
       }
     ],
     "menus": {
       "view/item/context": [
+        {
+          "command": "pie-vscode.start1C",
+          "when": "view == CollectionOfIB",
+          "group": "inline"
+        },
+        {
+          "command": "pie-vscode.startDesigner",
+          "when": "view == CollectionOfIB",
+          "group": "inline"
+        },
         {
           "command": "pie-vscode.setCurrentBase",
           "when": "view == CollectionOfIB",

@@ -59,6 +59,38 @@ function activate(context) {
 		setCurrentDatabase(IBCollection.name);
 	}));
 
+	context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.start1C', function (IBCollection) {
+		let executeble = path.join(process.env.PROGRAMFILES, "1cv8", "common", "1CEstart.exe");
+
+		let task = new vscode.Task(
+			{
+				type: executeble,
+				task: " ENTERPRISE /IBName " + IBCollection.name
+			},
+			vscode.TaskScope.Workspace,
+			"1cestart",
+			" ENTERPRISE /IBName " + IBCollection.name,
+			new vscode.ProcessExecution(executeble, ["ENTERPRISE", "/IBName", IBCollection.name])
+		);
+		vscode.tasks.executeTask(task);
+	}));
+
+	context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.startDesigner', function (IBCollection) {
+		let executeble = path.join(process.env.PROGRAMFILES, "1cv8", "common", "1CEstart.exe");
+
+		let task = new vscode.Task(
+			{
+				type: executeble,
+				task: " DESIGNER /IBName " + IBCollection.name
+			},
+			vscode.TaskScope.Workspace,
+			"1cestart",
+			" DESIGNER /IBName " + IBCollection.name,
+			new vscode.ProcessExecution(executeble, ["DESIGNER", "/IBName", IBCollection.name])
+		);
+		vscode.tasks.executeTask(task);
+	}));
+
 }
 
 // This method is called when your extension is deactivated
