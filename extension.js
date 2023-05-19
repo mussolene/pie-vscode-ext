@@ -92,6 +92,36 @@ function setCurrentDatabase(name) {
 	fs.writeFileSync(pathenv, envfile.stringify(parsedFile))
 }
 
+function parseINIString(data) {
+	let regex = {
+		section: /^\s*\[\s*([^\]]*)\s*\]\s*$/,
+		param: /^\s*([^=]+?)\s*=\s*(.*?)\s*$/,
+		comment: /^\s*;.*$/
+	};
+	let value = {};
+	let lines = data.split(/[\r\n]+/);
+	let section = null;
+	lines.forEach(function (line) {
+		if (regex.comment.test(line)) {
+			return;
+		} else if (regex.param.test(line)) {
+			let match = line.match(regex.param);
+			if (section) {
+				value[section][match[1]] = match[2];
+			} else {
+				value[match[1]] = match[2];
+			}
+		} else if (regex.section.test(line)) {
+			let match = line.match(regex.section);
+			value[match[1]] = {};
+			section = match[1];
+		} else if (line.length == 0 && section) {
+			section = null;
+		};
+	});
+	return value;
+}
+
 class CollectionOfIB {
 
 	_onDidChangeTreeData = new vscode.EventEmitter();
@@ -114,14 +144,24 @@ class CollectionOfIB {
 
 	getIBCollection() {
 		const toDep = (name, path) => {
-			return new IBCollection(name, path);
+			return new IBCollection(name, path.Connect);
 		};
-		const config = vscode.workspace.getConfiguration('PieVscodeExt');
 
-		const CollectionOfIB = config.CollectionOfIB
-			? Object.keys(config.CollectionOfIB).map(dep => toDep(dep, config.CollectionOfIB[dep]))
+		let pathib = path.join(process.env.APPDATA, "1C", "1CEStart", "ibases.v8i");
+		let pathcfg = path.join(process.env.APPDATA, "1C", "1CEStart", "1CEStart.cfg");
+		let parsedFile_pathib = parseINIString(fs.readFileSync(pathib).toString());
+		let parsedFile_pathcfg = parseINIString(fs.readFileSync(pathcfg, { encoding: 'utf16le' }).toString());
+		let CommonInfoBase = parsedFile_pathcfg.CommonInfoBase;
+
+		const CollectionOfIB = CommonInfoBase
+			? Object.keys(CommonInfoBase).map(dep => toDep(dep, CommonInfoBase[dep]))
 			: [];
-		return CollectionOfIB;
+
+		const CollectionOfIB2 = parsedFile_pathib
+			? Object.keys(parsedFile_pathib).map(dep => toDep(dep, parsedFile_pathib[dep]))
+			: [];
+
+		return CollectionOfIB.concat(CollectionOfIB2);
 	}
 }
 

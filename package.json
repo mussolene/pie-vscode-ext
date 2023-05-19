@@ -4,7 +4,7 @@
   "description": "Working pie in vscode",
   "license": "MIT",
   "icon": "images/logo.png",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "publisher": "mussolene",
   "repository": {
     "type": "git",
@@ -39,41 +39,6 @@
           "type": "string",
           "default": "",
           "description": "Путь к бинарникам платформы 1С для работы pie"
-        },
-        "PieVscodeExt.CollectionOfIB": {
-          "type": "object",
-          "default": {
-            "БП 3.0 (oldest) КОРП": "C:\\Diadoc_dt\\build\\AccountingCorp30_latest",
-            "ERP 2.4 (oldest)": "C:\\Diadoc_dt\\build\\Enterprise24_oldest",
-            "ERP 2.4 (latest)": "C:\\Diadoc_dt\\build\\Enterprise24_latest",
-            "ERP 2.5 (oldest)": "C:\\Diadoc_dt\\build\\Enterprise25_oldest",
-            "ERP 2.5 (latest)": "C:\\Diadoc_dt\\build\\Enterprise25_latest",
-            "УНФ 1.6 (oldest)": "C:\\Diadoc_dt\\build\\SmallBusiness16_oldest",
-            "УНФ 1.6 (latest)": "C:\\Diadoc_dt\\build\\SmallBusiness16_latest",
-            "УНФ 3.0 (latest)": "C:\\Diadoc_dt\\build\\SmallBusiness30_latest",
-            "ERP УХ 3.1 (latest)": "C:\\Diadoc_dt\\build\\ERPUH31_latest",
-            "Розница 2.3 (latest)": "C:\\Diadoc_dt\\build\\Retail23_latest",
-            "Розница 3.0 (latest)": "C:\\Diadoc_dt\\build\\Retail30_latest",
-            "БГУ 2.0 (latest)": "C:\\Diadoc_dt\\build\\StateAccounting20_latest",
-            "ДО КОРП 2.1 (latest)": "C:\\Diadoc_dt\\build\\DocMgrCorp21_latest",
-            "ДО КОРП 3.0 (latest)": "C:\\Diadoc_dt\\build\\DocMgrCorp30_latest",
-            "Аренда и управление недвижимостью для БП 3.0 (latest)": "C:\\Diadoc_dt\\build\\Arenda3_latest",
-            "Аренда и управление недвижимостью для БП 3.0 (oldest)": "C:\\Diadoc_dt\\build\\Arenda3_oldest",
-            "Альфа-Авто 5.1 (latest)": "C:\\Diadoc_dt\\build\\AlfaAuto51_latest",
-            "Альфа-Авто 6.0 (latest)": "C:\\Diadoc_dt\\build\\AutoSalon60_latest",
-            "Альфа-Авто 6.1 (latest)": "C:\\Diadoc_dt\\build\\AutoSalon61_latest",
-            "БП 2.0 (latest) КОРП": "C:\\Diadoc_dt\\build\\AccountingCorp20_latest",
-            "КА 1.1 (1.1.100.2)": "C:\\Diadoc_dt\\build\\ARAutomation11_100",
-            "КА 1.1 (latest)": "C:\\Diadoc_dt\\build\\ARAutomation11_latest",
-            "УПП 1.3 (latest)": "C:\\Diadoc_dt\\build\\Enterprise13_latest",
-            "УТ 10.3 (latest)": "C:\\Diadoc_dt\\build\\Trade103_latest",
-            "Vanessa_Pro_BP": "C:\\Diadoc_dt\\build\\Vanessa_Pro_BP"
-          },
-          "additionalProperties": {
-            "type": "string",
-            "description": "Имя базы в стартере 1С и путь до нее"
-          },
-          "description": "Варианты баз для использования с расширением"
         },
         "PieVscodeExt.processCount": {
           "type": "number",
