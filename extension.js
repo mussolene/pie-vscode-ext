@@ -137,41 +137,52 @@ class CollectionOfIB {
 	}
 
 	getChildren(element) {
-		return Promise.resolve(
-			this.getIBCollection()
-		);
+		if (element) {
+			return Promise.resolve(
+				this.getIBCollection('/' + element.name)
+			);
+		} else {
+			return Promise.resolve(
+				this.getIBCollection('/')
+			);
+		};
 	}
 
-	getIBCollection() {
-		const toDep = (name, path) => {
-			return new IBCollection(name, path.Connect);
+	getIBCollection(folder) {
+		const toIB = (name, ib) => {
+			if (!ib.Connect) {
+				return new IBCollection(name, ib.Folder, "", vscode.TreeItemCollapsibleState.Collapsed);
+			} else {
+				return new IBCollection(name, ib.Folder, ib.Connect, vscode.TreeItemCollapsibleState.None)
+			}
 		};
 
 		let pathib = path.join(process.env.APPDATA, "1C", "1CEStart", "ibases.v8i");
 		let pathcfg = path.join(process.env.APPDATA, "1C", "1CEStart", "1CEStart.cfg");
 		let parsedFile_pathib = parseINIString(fs.readFileSync(pathib).toString());
 		let parsedFile_pathcfg = parseINIString(fs.readFileSync(pathcfg, { encoding: 'utf16le' }).toString());
-		let CommonInfoBase = parsedFile_pathcfg.CommonInfoBase;
+		let CommonInfoBase = parsedFile_pathcfg.CommonInfoBases ? parseINIString(fs.readFileSync(parsedFile_pathcfg.CommonInfoBases).toString()) : {};
 
-		const CollectionOfIB = CommonInfoBase
-			? Object.keys(CommonInfoBase).map(dep => toDep(dep, CommonInfoBase[dep]))
+		Object.keys(parsedFile_pathib).forEach(ib => { CommonInfoBase[ib] = parsedFile_pathib[ib] })
+
+		const CollectionOfIB2 = CommonInfoBase
+			? Object.keys(CommonInfoBase).map(ib => toIB(ib, CommonInfoBase[ib]))
 			: [];
 
-		const CollectionOfIB2 = parsedFile_pathib
-			? Object.keys(parsedFile_pathib).map(dep => toDep(dep, parsedFile_pathib[dep]))
-			: [];
+		let filterbase = CollectionOfIB2.filter(ib => { return ib.path == folder });
 
-		return CollectionOfIB.concat(CollectionOfIB2);
+		return filterbase;
 	}
 }
 
 exports.CollectionOfIB = CollectionOfIB;
 class IBCollection extends vscode.TreeItem {
-	constructor(name, path) {
-		super(name);
+	constructor(name, path, description, collapsibleState) {
+		super(name, collapsibleState);
 		this.name = name;
 		this.path = path;
 		this.tooltip = `${this.name}`;
-		this.description = `${this.path}`;
+		this.description = description;
+		this.collapsibleState = collapsibleState;
 	}
 }
