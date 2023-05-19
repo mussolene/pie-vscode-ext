@@ -1,0 +1,25 @@
+stages:
+  - build
+  - deploy
+
+build:
+  only: [tags]
+  stage: build
+  image: colinfang/vsce
+  script:
+    - "vsce package --allow-star-activation"
+  artifacts:
+    paths: ["./*.vsix"]
+
+release:
+  only: [tags]
+  needs: [build]
+  stage: deploy
+  script:
+    - release-cli create --name "v.$CI_COMMIT_TAG"
+      --description "$CI_COMMIT_MESSAGE"
+      --tag-name "$CI_COMMIT_TAG"
+      --ref "$CI_COMMIT_SHA"
+      --assets-link '{"name":"'pie-vsode-$CI_COMMIT_TAG'","url":"'$CI_PROJECT_URL/-/jobs/$CI_JOB_ID/artifacts/file/pie-vsode-$CI_COMMIT_TAG.vsix'","link_type":"package"}'
+  artifacts:
+    paths: ["./*.vsix"]

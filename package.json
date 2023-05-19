@@ -1,0 +1,217 @@
+{
+  "name": "pie-vscode",
+  "displayName": "pie-vscode",
+  "description": "Working pie in vscode",
+  "license": "MIT",
+  "icon": "images/logo.png",
+  "version": "0.0.6",
+  "publisher": "mussolene",
+  "repository": {
+    "type": "git",
+    "url": "https://git.skbkontur.ru/Diadoc1C/pie-vscode-extension"
+  },
+  "engines": {
+    "vscode": "^1.78.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "*"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "PieVscodeExt",
+      "displayName": "Pie vscode extention",
+      "properties": {
+        "PieVscodeExt.platformForOpenPath": {
+          "type": "string",
+          "default": "",
+          "description": "Путь к бинарникам платформы 1С для запуска конфигуратора"
+        },
+        "PieVscodeExt.workspaceWorking": {
+          "type": "string",
+          "default": "",
+          "description": "Путь к папке в которой будет работать расширение. Если не заполнено то будет работать везде иначе только в той папке что указана"
+        },
+        "PieVscodeExt.platformForDumpPath": {
+          "type": "string",
+          "default": "",
+          "description": "Путь к бинарникам платформы 1С для работы pie"
+        },
+        "PieVscodeExt.CollectionOfIB": {
+          "type": "object",
+          "default": {
+            "БП 3.0 (oldest) КОРП": "C:\\Diadoc_dt\\build\\AccountingCorp30_latest",
+            "ERP 2.4 (oldest)": "C:\\Diadoc_dt\\build\\Enterprise24_oldest",
+            "ERP 2.4 (latest)": "C:\\Diadoc_dt\\build\\Enterprise24_latest",
+            "ERP 2.5 (oldest)": "C:\\Diadoc_dt\\build\\Enterprise25_oldest",
+            "ERP 2.5 (latest)": "C:\\Diadoc_dt\\build\\Enterprise25_latest",
+            "УНФ 1.6 (oldest)": "C:\\Diadoc_dt\\build\\SmallBusiness16_oldest",
+            "УНФ 1.6 (latest)": "C:\\Diadoc_dt\\build\\SmallBusiness16_latest",
+            "УНФ 3.0 (latest)": "C:\\Diadoc_dt\\build\\SmallBusiness30_latest",
+            "ERP УХ 3.1 (latest)": "C:\\Diadoc_dt\\build\\ERPUH31_latest",
+            "Розница 2.3 (latest)": "C:\\Diadoc_dt\\build\\Retail23_latest",
+            "Розница 3.0 (latest)": "C:\\Diadoc_dt\\build\\Retail30_latest",
+            "БГУ 2.0 (latest)": "C:\\Diadoc_dt\\build\\StateAccounting20_latest",
+            "ДО КОРП 2.1 (latest)": "C:\\Diadoc_dt\\build\\DocMgrCorp21_latest",
+            "ДО КОРП 3.0 (latest)": "C:\\Diadoc_dt\\build\\DocMgrCorp30_latest",
+            "Аренда и управление недвижимостью для БП 3.0 (latest)": "C:\\Diadoc_dt\\build\\Arenda3_latest",
+            "Аренда и управление недвижимостью для БП 3.0 (oldest)": "C:\\Diadoc_dt\\build\\Arenda3_oldest",
+            "Альфа-Авто 5.1 (latest)": "C:\\Diadoc_dt\\build\\AlfaAuto51_latest",
+            "Альфа-Авто 6.0 (latest)": "C:\\Diadoc_dt\\build\\AutoSalon60_latest",
+            "Альфа-Авто 6.1 (latest)": "C:\\Diadoc_dt\\build\\AutoSalon61_latest",
+            "БП 2.0 (latest) КОРП": "C:\\Diadoc_dt\\build\\AccountingCorp20_latest",
+            "КА 1.1 (1.1.100.2)": "C:\\Diadoc_dt\\build\\ARAutomation11_100",
+            "КА 1.1 (latest)": "C:\\Diadoc_dt\\build\\ARAutomation11_latest",
+            "УПП 1.3 (latest)": "C:\\Diadoc_dt\\build\\Enterprise13_latest",
+            "УТ 10.3 (latest)": "C:\\Diadoc_dt\\build\\Trade103_latest",
+            "Vanessa_Pro_BP": "C:\\Diadoc_dt\\build\\Vanessa_Pro_BP"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "description": "Имя базы в стартере 1С и путь до нее"
+          },
+          "description": "Варианты баз для использования с расширением"
+        },
+        "PieVscodeExt.processCount": {
+          "type": "number",
+          "default": 10,
+          "description": "Количество потоков для работы библиотеки pie"
+        },
+        "PieVscodeExt.ibUser": {
+          "type": "string",
+          "default": "Администратор",
+          "description": "Пользователь базы данных"
+        },
+        "PieVscodeExt.ibPass": {
+          "type": "string",
+          "default": "",
+          "description": "Пароль пользователя базы данных"
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "pie-vscode.build",
+        "title": "Собрать артефакты"
+      },
+      {
+        "command": "pie-vscode.load",
+        "title": "Загрузить расширение"
+      },
+      {
+        "command": "pie-vscode.dump",
+        "title": "Разобрать расширение"
+      },
+      {
+        "command": "pie-vscode.up_version",
+        "title": "Поднять номер версии"
+      },
+      {
+        "command": "pie-vscode.up_build",
+        "title": "Поднять номер сборки"
+      },
+      {
+        "command": "pie-vscode.build_at",
+        "title": "Собрать xUnit"
+      },
+      {
+        "command": "pie-vscode.dump_at",
+        "title": "Разобрать xUnit"
+      },
+      {
+        "command": "pie-vscode.old_dump",
+        "title": "Разобрать артефакты"
+      },
+      {
+        "command": "pie-vscode.setCurrentBase",
+        "title": "Использовать текущую"
+      },
+      {
+        "command": "pie-vscode.form_code_validate",
+        "title": "Проверить переиспользуемый код форм"
+      }
+    ],
+    "menus": {
+      "view/item/context": [
+        {
+          "command": "pie-vscode.setCurrentBase",
+          "when": "view == CollectionOfIB",
+          "group": "navigation"
+        }
+      ],
+      "scm/title": [
+        {
+          "command": "pie-vscode.build",
+          "group": "0_main.pievscode@3",
+          "when": "PieVscodeExt.supported"
+        },
+        {
+          "command": "pie-vscode.load",
+          "group": "0_main.pievscode@1",
+          "when": "PieVscodeExt.supported"
+        },
+        {
+          "command": "pie-vscode.dump",
+          "group": "0_main.pievscode@2",
+          "when": "PieVscodeExt.supported"
+        },
+        {
+          "command": "pie-vscode.up_version",
+          "group": "0_main.pievscode@4",
+          "when": "PieVscodeExt.supported"
+        },
+        {
+          "command": "pie-vscode.up_build",
+          "group": "0_main.pievscode@5",
+          "when": "PieVscodeExt.supported"
+        },
+        {
+          "command": "pie-vscode.build_at",
+          "group": "0_main.pievscode@6",
+          "when": "PieVscodeExt.supported"
+        },
+        {
+          "command": "pie-vscode.dump_at",
+          "group": "0_main.pievscode@7",
+          "when": "PieVscodeExt.supported"
+        },
+        {
+          "command": "pie-vscode.old_dump",
+          "group": "0_main.pievscode@8",
+          "when": "PieVscodeExt.supported"
+        },
+        {
+          "command": "pie-vscode.form_code_validate",
+          "group": "0_main.pievscode@8",
+          "when": "PieVscodeExt.supported"
+        }
+      ]
+    },
+    "views": {
+      "scm": [
+        {
+          "id": "CollectionOfIB",
+          "name": "Варианты используемых баз",
+          "when": "PieVscodeExt.supported"
+        }
+      ]
+    }
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.78.0",
+    "@types/glob": "^8.1.0",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "16.x",
+    "eslint": "^8.39.0",
+    "glob": "^8.1.0",
+    "mocha": "^10.2.0",
+    "typescript": "^5.0.4",
+    "@vscode/test-electron": "^2.3.0"
+  },
+  "scripts": {
+    "compile": "tsc -p ./"
+  }
+}
