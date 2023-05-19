@@ -8,7 +8,7 @@
   "publisher": "mussolene",
   "repository": {
     "type": "git",
-    "url": "https://git.skbkontur.ru/Diadoc1C/pie-vscode-extension"
+    "url": "https://github.com/mussolene/pie-vscode-ext"
   },
   "engines": {
     "vscode": "^1.78.0"
