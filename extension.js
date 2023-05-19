@@ -33,10 +33,9 @@ function activate(context) {
 
 	vscode.commands.executeCommand('setContext', 'PieVscodeExt.supported', true);
 
-	vscode.window.registerTreeDataProvider(
-		'CollectionOfIB',
-		new CollectionOfIB()
-	);
+	let CollectionIB = new CollectionOfIB()
+	vscode.window.registerTreeDataProvider('CollectionOfIB', CollectionIB);
+	context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.refreshBases', () => CollectionIB.refresh()));
 
 	let tasksArray = ["build", "load", "dump", "up_version", "up_build", "build_at", "dump_at", "old_dump", "form_code_validate"];
 

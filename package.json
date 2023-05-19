@@ -126,18 +126,37 @@
         "title": "Разобрать артефакты"
       },
       {
-        "command": "pie-vscode.setCurrentBase",
-        "title": "Использовать текущую"
-      },
-      {
         "command": "pie-vscode.form_code_validate",
         "title": "Проверить переиспользуемый код форм"
+      },
+      {
+        "command": "pie-vscode.setCurrentBase",
+        "title": "Использовать текущую",
+        "icon": {
+          "light": "images/light/boolean.svg",
+          "dark": "images/dark/boolean.svg"
+        }
+      },
+      {
+        "command": "pie-vscode.refreshBases",
+        "title": "Обновить",
+        "icon": {
+          "light": "images/light/refresh.svg",
+          "dark": "images/dark/refresh.svg"
+        }
       }
     ],
     "menus": {
       "view/item/context": [
         {
           "command": "pie-vscode.setCurrentBase",
+          "when": "view == CollectionOfIB",
+          "group": "inline"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "pie-vscode.refreshBases",
           "when": "view == CollectionOfIB",
           "group": "navigation"
         }
