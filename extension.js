@@ -195,10 +195,13 @@ class CollectionOfIB {
 		let parsedFile_pathcfg = parseINIString(fs.readFileSync(pathcfg, { encoding: 'utf16le' }).toString());
 		let CommonInfoBase = parsedFile_pathcfg.CommonInfoBases ? parseINIString(fs.readFileSync(parsedFile_pathcfg.CommonInfoBases).toString()) : {};
 
-		Object.keys(parsedFile_pathib).forEach(ib => { CommonInfoBase[ib] = parsedFile_pathib[ib] })
+		let SortedBase = {};
 
-		const CollectionOfIB2 = CommonInfoBase
-			? Object.keys(CommonInfoBase).map(ib => toIB(ib, CommonInfoBase[ib]))
+		Object.keys(CommonInfoBase).sort().forEach(ib => { SortedBase[ib] = CommonInfoBase[ib] });
+		Object.keys(parsedFile_pathib).sort().forEach(ib => { SortedBase[ib] = parsedFile_pathib[ib] });
+
+		const CollectionOfIB2 = SortedBase
+			? Object.keys(SortedBase).map(ib => toIB(ib, SortedBase[ib]))
 			: [];
 
 		let filterbase = CollectionOfIB2.filter(ib => { return ib.path == folder });
