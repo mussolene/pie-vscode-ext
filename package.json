@@ -4,7 +4,7 @@
   "description": "Working pie in vscode",
   "license": "MIT",
   "icon": "images/logo.png",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "publisher": "mussolene",
   "repository": {
     "type": "git",
@@ -125,6 +125,14 @@
           "light": "images/DESIGNER.png",
           "dark": "images/DESIGNER.png"
         }
+      },
+      {
+        "command": "pie-vscode.setCurrentBaseAndLaunch",
+        "title": "Загрузить расширение и запустить 1С",
+        "icon": {
+          "light": "images/SetAndStartExt.png",
+          "dark": "images/SetAndStartExt.png"
+        }
       }
     ],
     "menus": {
@@ -141,6 +149,11 @@
         },
         {
           "command": "pie-vscode.setCurrentBase",
+          "when": "view == CollectionOfIB",
+          "group": "inline"
+        },
+        {
+          "command": "pie-vscode.setCurrentBaseAndLaunch",
           "when": "view == CollectionOfIB",
           "group": "inline"
         }

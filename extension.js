@@ -59,6 +59,11 @@ function activate(context) {
 		setCurrentDatabase(IBCollection.name);
 	}));
 
+	context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.setCurrentBaseAndLaunch', function (IBCollection) {
+		setCurrentDatabase(IBCollection.name);
+		vscode.commands.executeCommand('pie-vscode.load');
+	}));
+
 	context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.start1C', function (IBCollection) {
 		let executeble = path.join(process.env.PROGRAMFILES, "1cv8", "common", "1CEstart.exe");
 
@@ -87,6 +92,22 @@ function activate(context) {
 			"1cestart",
 			" DESIGNER /IBName " + IBCollection.name,
 			new vscode.ProcessExecution(executeble, ["DESIGNER", "/IBName", IBCollection.name])
+		);
+		vscode.tasks.executeTask(task);
+	}));
+
+	context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.setCurrentBaseAndLaunch', function (IBCollection) {
+		vscode.window.showInformationMessage('Выполняется загрузка расширения в выбранную базу...').then(() => { }, () => { });
+		setCurrentDatabase(IBCollection.name);
+		let task = new vscode.Task(
+			{
+				type: 'pie',
+				task: 'load'
+			},
+			vscode.TaskScope.Workspace,
+			'pie load',
+			'pie',
+			new vscode.ShellExecution('pie load')
 		);
 		vscode.tasks.executeTask(task);
 	}));
