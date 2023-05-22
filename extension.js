@@ -92,6 +92,7 @@ function activate(context) {
 	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.setCurrentBaseAndLaunch', function (IBCollection) {
+		vscode.window.showInformationMessage('Выполняется загрузка расширения в выбранную базу...').then(() => { }, () => { });
 		setCurrentDatabase(IBCollection.name);
 		let task = new vscode.Task(
 			{

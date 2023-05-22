@@ -130,8 +130,8 @@
 				"command": "pie-vscode.setCurrentBaseAndLaunch",
 				"title": "Загрузить расширение и запустить 1С",
 				"icon": {
-					"light": "images/extention.png",
-					"dark": "images/extention.png"
+					"light": "images/SetAndStartExt.png",
+					"dark": "images/SetAndStartExt.png"
 				}
 			}
     ],
