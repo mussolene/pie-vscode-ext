@@ -125,7 +125,15 @@
           "light": "images/DESIGNER.png",
           "dark": "images/DESIGNER.png"
         }
-      }
+      },
+      {
+				"command": "pie-vscode.setCurrentBaseAndLaunch",
+				"title": "Загрузить расширение и запустить 1С",
+				"icon": {
+					"light": "images/extention.png",
+					"dark": "images/extention.png"
+				}
+			}
     ],
     "menus": {
       "view/item/context": [
@@ -143,7 +151,12 @@
           "command": "pie-vscode.setCurrentBase",
           "when": "view == CollectionOfIB",
           "group": "inline"
-        }
+        },
+        {
+					"command": "pie-vscode.setCurrentBaseAndLaunch",
+					"when": "view == CollectionOfIB",
+					"group": "inline"
+				}
       ],
       "view/title": [
         {
