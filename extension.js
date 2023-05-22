@@ -59,6 +59,11 @@ function activate(context) {
 		setCurrentDatabase(IBCollection.name);
 	}));
 
+	context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.setCurrentBaseAndLaunch', function (IBCollection) {
+		setCurrentDatabase(IBCollection.name);
+		vscode.commands.executeCommand('pie-vscode.load');
+	}));
+
 	context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.start1C', function (IBCollection) {
 		let executeble = path.join(process.env.PROGRAMFILES, "1cv8", "common", "1CEstart.exe");
 
