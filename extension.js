@@ -171,7 +171,7 @@ class CollectionOfIB {
 	getChildren(element) {
 		if (element) {
 			return Promise.resolve(
-				this.getIBCollection('/' + element.name)
+				this.getIBCollection(String(element.path + '/').replace('//', '/') + element.name)
 			);
 		} else {
 			return Promise.resolve(
