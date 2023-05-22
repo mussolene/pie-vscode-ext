@@ -4,7 +4,7 @@
   "description": "Working pie in vscode",
   "license": "MIT",
   "icon": "images/logo.png",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "publisher": "mussolene",
   "repository": {
     "type": "git",
@@ -114,16 +114,16 @@
         "command": "pie-vscode.start1C",
         "title": "Запустить 1С",
         "icon": {
-          "light": "images/107.ico",
-          "dark": "images/107.ico"
+          "light": "images/ENTERPRISE.png",
+          "dark": "images/ENTERPRISE.png"
         }
       },
       {
         "command": "pie-vscode.startDesigner",
         "title": "Запустить конфигуратор",
         "icon": {
-          "light": "images/45.ico",
-          "dark": "images/45.ico"
+          "light": "images/DESIGNER.png",
+          "dark": "images/DESIGNER.png"
         }
       }
     ],
