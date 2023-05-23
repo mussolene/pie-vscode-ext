@@ -24,6 +24,7 @@ function activate(context) {
 
 	let config = vscode.workspace.getConfiguration('PieVscodeExt');
 	let workspaceWorking = config.workspaceWorking && config.workspaceWorking.length > 0 ? config.workspaceWorking : undefined;
+	let pathPieFile = path.join(rootPath, 'piefile.py');
 
 	if (workspaceWorking) {
 		if (workspaceWorking !== rootPath) {
@@ -32,14 +33,22 @@ function activate(context) {
 	};
 
 	vscode.commands.executeCommand('setContext', 'PieVscodeExt.supported', true);
+	if (!pathExists(pathPieFile)) {
+		vscode.commands.executeCommand('setContext', 'PieVscodeExt.supported', false);
+	}
 
 	let CollectionIB = new CollectionOfIB()
 	vscode.window.registerTreeDataProvider('CollectionOfIB', CollectionIB);
 	context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.refreshBases', () => CollectionIB.refresh()));
 
-	let tasksArray = ["build", "load", "dump", "up_version", "up_build", "build_at", "dump_at", "old_dump", "form_code_validate"];
+	let regex = /^\s*def\s+(\w+)\s*\(/mg;
+	let matcher = [...fs.readFileSync(pathPieFile).toString().matchAll(regex)];
 
-	tasksArray.forEach(function (entrypoint) {
+	let pie_function = []
+	matcher.forEach(m => { pie_function.push(m[1]) })
+
+	pie_function.forEach(function (entrypoint) {
+		vscode.commands.executeCommand('setContext', 'PieVscodeExt.Use' + entrypoint, true);
 		context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.' + entrypoint, function () {
 			let task = new vscode.Task(
 				{
