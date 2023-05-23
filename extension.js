@@ -96,22 +96,6 @@ function activate(context) {
 		vscode.tasks.executeTask(task);
 	}));
 
-	context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.setCurrentBaseAndLaunch', function (IBCollection) {
-		vscode.window.showInformationMessage('Выполняется загрузка расширения в выбранную базу...').then(() => { }, () => { });
-		setCurrentDatabase(IBCollection.name);
-		let task = new vscode.Task(
-			{
-				type: 'pie',
-				task: 'load'
-			},
-			vscode.TaskScope.Workspace,
-			'pie load',
-			'pie',
-			new vscode.ShellExecution('pie load')
-		);
-		vscode.tasks.executeTask(task);
-	}));
-
 }
 
 // This method is called when your extension is deactivated
