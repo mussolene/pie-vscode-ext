@@ -25,7 +25,7 @@ function activate(context) {
 	let config = vscode.workspace.getConfiguration('PieVscodeExt');
 	let workspaceWorking = config.workspaceWorking && config.workspaceWorking.length > 0 ? config.workspaceWorking : undefined;
 	let pathPieFile = path.join(rootPath, 'piefile.py');
-
+	vscode.commands.executeCommand('setContext', 'PieVscodeExt.supported', true);
 	if (workspaceWorking) {
 		if (workspaceWorking !== rootPath) {
 			vscode.commands.executeCommand('setContext', 'PieVscodeExt.supported', false);
