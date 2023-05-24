@@ -32,11 +32,6 @@ function activate(context) {
 		}
 	};
 
-	vscode.commands.executeCommand('setContext', 'PieVscodeExt.supported', true);
-	if (!pathExists(pathPieFile)) {
-		vscode.commands.executeCommand('setContext', 'PieVscodeExt.supported', false);
-	}
-
 	let CollectionIB = new CollectionOfIB()
 	vscode.window.registerTreeDataProvider('CollectionOfIB', CollectionIB);
 	context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.refreshBases', () => CollectionIB.refresh()));
