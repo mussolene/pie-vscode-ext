@@ -4,7 +4,7 @@
   "description": "Working pie in vscode",
   "license": "MIT",
   "icon": "images/logo.png",
-  "version": "0.0.20",
+  "version": "0.0.21",
   "publisher": "mussolene",
   "repository": {
     "type": "git",
@@ -17,7 +17,7 @@
     "Other"
   ],
   "activationEvents": [
-    "workspaceContains:**/piefile.py"
+    "workspaceContains:./piefile.py"
   ],
   "main": "./extension.js",
   "contributes": {
@@ -59,12 +59,16 @@
     },
     "commands": [
       {
-        "command": "pie-vscode.build",
-        "title": "BUILD"
-      },
-      {
         "command": "pie-vscode.load",
         "title": "LOAD"
+      },
+      {
+        "command": "pie-vscode.unload",
+        "title": "UNLOAD"
+      },
+      {
+        "command": "pie-vscode.build",
+        "title": "BUILD"
       },
       {
         "command": "pie-vscode.dump",
@@ -165,14 +169,19 @@
           "group": "navigation"
         },
         {
-          "command": "pie-vscode.build",
-          "group": "navigation",
-          "when": "PieVscodeExt.supported && view == CollectionOfIB && PieVscodeExt.Usebuild"
-        },
-        {
           "command": "pie-vscode.load",
           "group": "navigation",
           "when": "PieVscodeExt.supported && view == CollectionOfIB && PieVscodeExt.Useload"
+        },
+        {
+          "command": "pie-vscode.unload",
+          "group": "navigation",
+          "when": "PieVscodeExt.supported && view == CollectionOfIB && PieVscodeExt.Useunload"
+        },
+        {
+          "command": "pie-vscode.build",
+          "group": "navigation",
+          "when": "PieVscodeExt.supported && view == CollectionOfIB && PieVscodeExt.Usebuild"
         },
         {
           "command": "pie-vscode.dump",
