@@ -129,7 +129,7 @@ function writeFileGitCurrentBranch(commandName) {
 
 	const branchName = require("child_process").execSync(exe_command).toString().replace(/\n/g, '').trim();
 
-	const fileName = ''.concat(branchName, '.gitbranch');
+	const fileName = ''.concat(branchName, '.txt');
 	const pathToFile = path.join(rootPath, catalog, fileName);
 
 	fs.writeFile(pathToFile, "", (err) => {
