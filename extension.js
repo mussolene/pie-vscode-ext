@@ -56,6 +56,9 @@ function activate(context) {
 				new vscode.ShellExecution('pie ' + entrypoint)
 			);
 			vscode.tasks.executeTask(task);
+			vscode.tasks.onDidEndTaskProcess(e => {
+				writeFileGitCurrentBranch(e.execution.task.name);
+			});
 		}));
 	})
 
@@ -108,6 +111,32 @@ function deactivate() { }
 module.exports = {
 	activate,
 	deactivate
+}
+
+function writeFileGitCurrentBranch(commandName) {
+	
+	let catalog = '';
+
+	if (commandName === 'pie build') {
+		catalog = 'build';
+	} else if (commandName === 'pie build_at') {
+		catalog = path.join('build', 'tests');
+	} else {
+		return;
+	};
+
+	const exe_command = ''.concat('git -C ', rootPath, ' branch --show-current');
+
+	const branchName = require("child_process").execSync(exe_command).toString().replace(/\n/g, '').trim();
+
+	const fileName = ''.concat(branchName, '.gitbranch');
+	const pathToFile = path.join(rootPath, catalog, fileName);
+
+	fs.writeFile(pathToFile, "", (err) => {
+		if (err) {
+			vscode.window.showInformationMessage(err);
+		};
+	});
 }
 
 function pathExists(p) {
