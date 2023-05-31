@@ -44,7 +44,17 @@ function activate(context) {
 
 	pie_function.forEach(function (entrypoint) {
 		vscode.commands.executeCommand('setContext', 'PieVscodeExt.Use' + entrypoint, true);
+
 		context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.' + entrypoint, function () {
+
+			if (entrypoint == "load" && config.platformForOpenPath) {
+				setCurrentPlatform(config.platformForOpenPath)
+			};
+
+			if (entrypoint != "load" && config.platformForDumpPath) {
+				setCurrentPlatform(config.platformForDumpPath)
+			};
+
 			let task = new vscode.Task(
 				{
 					type: 'pie',
@@ -130,6 +140,19 @@ function setCurrentDatabase(name) {
 
 	let parsedFile = envfile.parse(fs.readFileSync(pathenv).toString());
 	parsedFile.PIE_IB_NAME = name;
+	fs.writeFileSync(pathenv, envfile.stringify(parsedFile))
+}
+
+function setCurrentPlatform(platformPath) {
+
+	const pathenv = path.join(rootPath, '.env');
+
+	if (!pathExists(pathenv)) {
+		fs.writeFileSync(pathenv, "")
+	}
+
+	let parsedFile = envfile.parse(fs.readFileSync(pathenv).toString());
+	parsedFile.PIE_V83_BIN = platformPath;
 	fs.writeFileSync(pathenv, envfile.stringify(parsedFile))
 }
 
