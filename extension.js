@@ -76,6 +76,48 @@ function activate(context) {
 		setCurrentDatabase(IBCollection.name);
 	}));
 
+	context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.close1C', function (IBCollection) {
+
+		//taskkill -im 1cv8.exe -f
+		//taskkill -im 1cv8c.exe -f
+		//taskkill -im 1cv8s.exe -f
+
+		let task = new vscode.Task(
+			{
+				type: 'taskkill',
+				task: 'taskkill 1cv8.exe'
+			},
+			vscode.TaskScope.Workspace,
+			'taskkill',
+			'taskkill 1cv8.exe',
+			new vscode.ProcessExecution('taskkill', ["-im", "1cv8.exe", "-f"])
+		);
+		let task1 = new vscode.Task(
+			{
+				type: 'taskkill',
+				task: 'taskkill 1cv8c.exe'
+			},
+			vscode.TaskScope.Workspace,
+			'taskkill',
+			'taskkill 1cv8c.exe',
+			new vscode.ProcessExecution('taskkill', ["-im", "1cv8c.exe", "-f"])
+		);
+		let task2 = new vscode.Task(
+			{
+				type: 'taskkill',
+				task: 'taskkill 1cv8s.exe'
+			},
+			vscode.TaskScope.Workspace,
+			'taskkill',
+			'taskkill 1cv8s.exe',
+			new vscode.ProcessExecution('taskkill', ["-im", "1cv8s.exe", "-f"])
+		);
+		executeTask(task);
+		executeTask(task1);
+		executeTask(task2);
+
+	}));
+
 	context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.setCurrentBaseAndLaunch', function (IBCollection) {
 		setCurrentDatabase(IBCollection.name);
 		vscode.commands.executeCommand('pie-vscode.load');
@@ -123,8 +165,19 @@ module.exports = {
 	deactivate
 }
 
+async function executeTask(task) {
+	await vscode.tasks.executeTask(task);
+
+	return new Promise(resolve => {
+		let disposable = vscode.tasks.onDidEndTask(e => {
+			disposable.dispose();
+			resolve();
+		});
+	});
+}
+
 function writeFileGitCurrentBranch(commandName) {
-	
+
 	let catalog = '';
 
 	if (commandName === 'pie build') {

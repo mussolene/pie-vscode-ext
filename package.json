@@ -4,7 +4,7 @@
   "description": "Working pie in vscode",
   "license": "MIT",
   "icon": "images/logo.png",
-  "version": "0.0.23",
+  "version": "0.0.24",
   "publisher": "mussolene",
   "repository": {
     "type": "git",
@@ -137,6 +137,10 @@
           "light": "images/SetAndStartExt.png",
           "dark": "images/SetAndStartExt.png"
         }
+      },
+      {
+        "command": "pie-vscode.close1C",
+        "title": "Закрыть все 1С"
       }
     ],
     "menus": {
@@ -215,8 +219,13 @@
         },
         {
           "command": "pie-vscode.form_code_validate",
-          "group": "0_main.pievscode@8",
+          "group": "0_main.pievscode@9",
           "when": "PieVscodeExt.supported && view == CollectionOfIB && PieVscodeExt.Useform_code_validate"
+        },
+        {
+          "command": "pie-vscode.close1C",
+          "group": "0_main.pievscode@9",
+          "when": "PieVscodeExt.supported && view == CollectionOfIB"
         }
       ]
     },
