@@ -11,7 +11,6 @@ const path = require('path');
 const https = require('https')
 const json = require('json')
 const envfile = require('envfile');
-const { default: axios } = require('axios');
 const { log } = require('console');
 const rootPath =
 	vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0
