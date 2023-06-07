@@ -8,7 +8,11 @@ const vscode = require('vscode');
 const process = require('process');
 const fs = require('fs');
 const path = require('path');
+const https = require('https')
+const json = require('json')
 const envfile = require('envfile');
+const { default: axios } = require('axios');
+const { log } = require('console');
 const rootPath =
 	vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0
 		? vscode.workspace.workspaceFolders[0].uri.fsPath
@@ -21,7 +25,6 @@ const rootPath =
  */
 
 function activate(context) {
-
 	let config = vscode.workspace.getConfiguration('PieVscodeExt');
 	let workspaceWorking = config.workspaceWorking && config.workspaceWorking.length > 0 ? config.workspaceWorking : undefined;
 	let pathPieFile = path.join(rootPath, 'piefile.py');
@@ -35,6 +38,9 @@ function activate(context) {
 	let CollectionIB = new CollectionOfIB()
 	vscode.window.registerTreeDataProvider('CollectionOfIB', CollectionIB);
 	context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.refreshBases', () => CollectionIB.refresh()));
+
+	let CollectionModules = new CollectionOfModules()
+	vscode.window.registerTreeDataProvider('CollectionOfModules', CollectionModules);
 
 	let regex = /^\s*def\s+(\w+)\s*\(/mg;
 	let matcher = [...fs.readFileSync(pathPieFile).toString().matchAll(regex)];
@@ -122,6 +128,35 @@ function activate(context) {
 		setCurrentDatabase(IBCollection.name);
 		vscode.commands.executeCommand('pie-vscode.load');
 	}));
+
+	context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.downloadModule', function (ModuleCollection) {
+		let title = 'Downloading ... ' + ModuleCollection.name
+		let promise = vscode.window.withProgress(
+			{
+				location: vscode.ProgressLocation.Notification,
+				title: title,
+				cancellable: false,
+			},
+			async (progress, token) => {
+				progress.report({ increment: 0 });
+				await downloadModule(ModuleCollection.name).then(data => {
+					let filepath = path.join(rootPath, "nosync", "Diadoc_" + ModuleCollection.name.replace(/\./g, "_") + ".epf")
+					fs.writeFile(filepath, data, function (err) {
+						if (err) {
+							console.log(err);
+						} else {
+							console.log("The file was saved!");
+						}
+					})
+				}).catch(error => {
+					log.apply(error)
+				});
+				progress.report({ increment: 100 });
+			}
+		)
+		return promise
+	}));
+
 
 	context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.start1C', function (IBCollection) {
 		let executeble = path.join(process.env.PROGRAMFILES, "1cv8", "common", "1CEstart.exe");
@@ -285,7 +320,7 @@ class CollectionOfIB {
 	getChildren(element) {
 		if (element) {
 			return Promise.resolve(
-				this.getIBCollection(String(element.path + '/').replace('//', '/') + element.name)
+				this.getIBCollection(String(element.path + '/').replace(/\/\//g, '/') + element.name)
 			);
 		} else {
 			return Promise.resolve(
@@ -325,11 +360,93 @@ class CollectionOfIB {
 }
 
 exports.CollectionOfIB = CollectionOfIB;
+
+class CollectionOfModules {
+
+	_onDidChangeTreeData = new vscode.EventEmitter();
+	onDidChangeTreeData = this._onDidChangeTreeData.event;
+
+
+	refresh() {
+		this._onDidChangeTreeData.fire();
+	}
+
+	getTreeItem(element) {
+		return element;
+	}
+
+	getChildren(element) {
+		return Promise.resolve(
+			this.getModuleCollection()
+		);
+	}
+
+	getModuleCollection() {
+		return fetchModules()
+	}
+
+
+}
+
+async function fetchModules() {
+	const toModule = (name, description) => {
+		return new ModuleCollection(name, description, vscode.TreeItemCollapsibleState.None)
+	};
+	let config = vscode.workspace.getConfiguration('PieVscodeExt')
+	let url = config.UrlUpdateService + "/1c/v1/diadoc_um/versions";
+	let promise = new Promise((resolve, reject) => {
+		let data = "";
+		https.get(url, res => {
+			res.on('data', chunk => { data += chunk })
+			res.on('end', () => {
+				let result = JSON.parse(data);
+				let moduleList = []
+				result.versions.forEach(module => {
+					moduleList.push(toModule(module.version, module.description))
+				})
+				moduleList.reverse()
+				resolve(moduleList);
+			})
+		})
+	});
+
+	let result = await promise; // wait until the promise resolves
+	return result
+};
+
+async function downloadModule(version) {
+	let config = vscode.workspace.getConfiguration('PieVscodeExt')
+	let url = config.UrlUpdateService + "/1c/v1/diadoc_um/data-processor?version=" + version;
+	let promise = new Promise((resolve, reject) => {
+		let data = [];
+		https.get(url, res => {
+			res.on('data', chunk => { data.push(chunk) })
+			res.on('end', () => {
+				resolve(Buffer.concat(data));
+			})
+		})
+	});
+
+	let result = await promise; // wait until the promise resolves
+	return result
+};
+
+exports.CollectionOfModules = CollectionOfModules;
 class IBCollection extends vscode.TreeItem {
 	constructor(name, path, description, collapsibleState) {
 		super(name, collapsibleState);
 		this.name = name;
 		this.path = path;
+		this.tooltip = `${this.name}`;
+		this.description = description;
+		this.collapsibleState = collapsibleState;
+	}
+}
+
+class ModuleCollection extends vscode.TreeItem {
+	constructor(name, description, collapsibleState) {
+		super(name, collapsibleState);
+		this.name = name;
 		this.tooltip = `${this.name}`;
 		this.description = description;
 		this.collapsibleState = collapsibleState;
