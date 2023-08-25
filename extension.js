@@ -40,6 +40,7 @@ function activate(context) {
 
 	let CollectionModules = new CollectionOfModules()
 	vscode.window.registerTreeDataProvider('CollectionOfModules', CollectionModules);
+	context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.refreshModules', () => CollectionModules.refresh()));
 
 	let regex = /^\s*def\s+(\w+)\s*\(/mg;
 	let matcher = [...fs.readFileSync(pathPieFile).toString().matchAll(regex)];
@@ -50,7 +51,7 @@ function activate(context) {
 	pie_function.forEach(function (entrypoint) {
 		vscode.commands.executeCommand('setContext', 'PieVscodeExt.Use' + entrypoint, true);
 
-		context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.' + entrypoint, function () {
+		context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.' + entrypoint, function (context) {
 
 			if (entrypoint == "load" && config.platformForOpenPath) {
 				setCurrentPlatform(config.platformForOpenPath)

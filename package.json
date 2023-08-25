@@ -4,7 +4,7 @@
   "description": "Working pie in vscode",
   "license": "MIT",
   "icon": "images/logo.png",
-  "version": "0.0.26",
+  "version": "0.0.27",
   "publisher": "mussolene",
   "repository": {
     "type": "git",
@@ -120,6 +120,14 @@
         }
       },
       {
+        "command": "pie-vscode.refreshModules",
+        "title": "Обновить список модулей",
+        "icon": {
+          "light": "images/light/refresh.svg",
+          "dark": "images/dark/refresh.svg"
+        }
+      },
+      {
         "command": "pie-vscode.start1C",
         "title": "Запустить 1С",
         "icon": {
@@ -188,6 +196,11 @@
         {
           "command": "pie-vscode.refreshBases",
           "when": "view == CollectionOfIB",
+          "group": "navigation"
+        },
+        {
+          "command": "pie-vscode.refreshModules",
+          "when": "view == CollectionOfModules",
           "group": "navigation"
         },
         {
