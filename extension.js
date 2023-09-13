@@ -139,8 +139,8 @@ function activate(context) {
 			},
 			async (progress, token) => {
 				progress.report({ increment: 0 });
-				await downloadModule(ModuleCollection.name).then(data => {
-					let filepath = path.join(rootPath, "nosync", "Diadoc_" + ModuleCollection.name.replace(/\./g, "_") + ".epf")
+				await downloadModule(ModuleCollection.url).then(data => {
+					let filepath = path.join(rootPath, "nosync", ModuleCollection.filename)
 					fs.writeFile(filepath, data, function (err) {
 						if (err) {
 							console.log(err);
@@ -376,21 +376,61 @@ class CollectionOfModules {
 	}
 
 	getChildren(element) {
-		return Promise.resolve(
-			this.getModuleCollection()
-		);
+		if (element) {
+			return Promise.resolve(
+				this.getModuleContents(element.name)
+			);
+		} else {
+			return Promise.resolve(
+				this.getModuleCollection()
+			);
+		};
 	}
 
 	getModuleCollection() {
 		return fetchModules()
 	}
 
-
+	getModuleContents(version) {
+		return fetchContent(version)
+	}
 }
+async function fetchContent(version) {
+	const toContent = (name, description, url, filename) => {
+		return new ModuleCollection(name, description, vscode.TreeItemCollapsibleState.None, url, filename)
+	};
+	let config = vscode.workspace.getConfiguration('PieVscodeExt')
+	let url = config.UrlUpdateService + "/1c/v1/diadoc_um/versions/" + version;
+	let promise = new Promise((resolve, reject) => {
+		let data = "";
+		https.get(url, res => {
+			res.on('data', chunk => { data += chunk })
+			res.on('end', () => {
+				let result = JSON.parse(data);
+				let contentList = []
+				for (let key in result.content) {
+					if (result.content.hasOwnProperty(key)) {
+						let el = result.content[key]
+						let contenttype = el.content_type
+						let md5hash = el.md5hash
+						let url_m = el.url
+						let filename = el.filename
+						let modulecontent = toContent(contenttype, md5hash, url_m, filename)
+						contentList.push(modulecontent)
+					}
+				}
+				resolve(contentList);
+			})
+		})
+	});
+
+	let result = await promise; // wait until the promise resolves
+	return result
+};
 
 async function fetchModules() {
 	const toModule = (name, description) => {
-		return new ModuleCollection(name, description, vscode.TreeItemCollapsibleState.None)
+		return new ModuleCollection(name, description, vscode.TreeItemCollapsibleState.Collapsed, "", "")
 	};
 	let config = vscode.workspace.getConfiguration('PieVscodeExt')
 	let url = config.UrlUpdateService + "/1c/v1/diadoc_um/versions";
@@ -414,9 +454,7 @@ async function fetchModules() {
 	return result
 };
 
-async function downloadModule(version) {
-	let config = vscode.workspace.getConfiguration('PieVscodeExt')
-	let url = config.UrlUpdateService + "/1c/v1/diadoc_um/data-processor?version=" + version;
+async function downloadModule(url) {
 	let promise = new Promise((resolve, reject) => {
 		let data = [];
 		https.get(url, res => {
@@ -444,9 +482,11 @@ class IBCollection extends vscode.TreeItem {
 }
 
 class ModuleCollection extends vscode.TreeItem {
-	constructor(name, description, collapsibleState) {
+	constructor(name, description, collapsibleState, url, filename) {
 		super(name, collapsibleState);
 		this.name = name;
+		this.url = url;
+		this.filename = filename;
 		this.tooltip = `${this.name}`;
 		this.description = description;
 		this.collapsibleState = collapsibleState;
