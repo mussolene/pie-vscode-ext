@@ -4,7 +4,7 @@
   "description": "Working pie in vscode",
   "license": "MIT",
   "icon": "images/logo.png",
-  "version": "0.0.28",
+  "version": "0.0.29",
   "publisher": "mussolene",
   "repository": {
     "type": "git",
@@ -17,7 +17,7 @@
     "Other"
   ],
   "activationEvents": [
-    "workspaceContains:./piefile.py"
+    "*"
   ],
   "main": "./extension.js",
   "contributes": {
@@ -65,43 +65,39 @@
     "commands": [
       {
         "command": "pie-vscode.load",
-        "title": "LOAD"
-      },
-      {
-        "command": "pie-vscode.unload",
-        "title": "UNLOAD"
-      },
-      {
-        "command": "pie-vscode.build",
-        "title": "BUILD"
+        "title": "Загрузить (pie load)"
       },
       {
         "command": "pie-vscode.dump",
-        "title": "DUMP"
+        "title": "Выгрузить (pie dump)"
+      },
+      {
+        "command": "pie-vscode.build",
+        "title": "Собрать (pie build)"
       },
       {
         "command": "pie-vscode.up_version",
-        "title": "UP_VERSION"
+        "title": "Поднять номер версии (pie up_version)"
       },
       {
         "command": "pie-vscode.up_build",
-        "title": "UP_BUILD"
+        "title": "Поднять номер сборки (pie up_build)"
       },
       {
         "command": "pie-vscode.build_at",
-        "title": "BUILD_AT"
+        "title": "Собрать xUnit (pie build_at)"
       },
       {
         "command": "pie-vscode.dump_at",
-        "title": "DUMP_AT"
+        "title": "Разобрать xUnit (pie dump_at)"
       },
       {
         "command": "pie-vscode.old_dump",
-        "title": "OLD_DUMP"
+        "title": "Разобрать обработку (pie old_dump)"
       },
       {
         "command": "pie-vscode.form_code_validate",
-        "title": "FORM_CODE_VALIDATION"
+        "title": "Проверить переиспользуемый код форм (pie form_code_validate)"
       },
       {
         "command": "pie-vscode.setCurrentBase",
@@ -183,13 +179,60 @@
         },
         {
           "command": "pie-vscode.setCurrentBaseAndLaunch",
-          "when": "view == CollectionOfIB && PieVscodeExt.Useload",
+          "when": "view == CollectionOfIB",
           "group": "inline"
         },
         {
           "command": "pie-vscode.downloadModule",
           "when": "view == CollectionOfModules",
           "group": "inline"
+        }
+      ],
+      "scm/title": [
+        {
+          "command": "pie-vscode.load",
+          "group": "0_main.pievscode@1",
+          "when": "scmProvider == git"
+        },
+        {
+          "command": "pie-vscode.build",
+          "group": "0_main.pievscode@3",
+          "when": "scmProvider == git"
+        },
+        {
+          "command": "pie-vscode.dump",
+          "group": "0_main.pievscode@4",
+          "when": "scmProvider == git"
+        },
+        {
+          "command": "pie-vscode.up_version",
+          "group": "0_main.pievscode@5",
+          "when": "scmProvider == git"
+        },
+        {
+          "command": "pie-vscode.up_build",
+          "group": "0_main.pievscode@6",
+          "when": "scmProvider == git"
+        },
+        {
+          "command": "pie-vscode.build_at",
+          "group": "0_main.pievscode@7",
+          "when": "scmProvider == git"
+        },
+        {
+          "command": "pie-vscode.dump_at",
+          "group": "0_main.pievscode@8",
+          "when": "scmProvider == git"
+        },
+        {
+          "command": "pie-vscode.old_dump",
+          "group": "0_main.pievscode@9",
+          "when": "scmProvider == git"
+        },
+        {
+          "command": "pie-vscode.form_code_validate",
+          "group": "0_main.pievscode@10",
+          "when": "scmProvider == git"
         }
       ],
       "view/title": [
@@ -202,56 +245,6 @@
           "command": "pie-vscode.refreshModules",
           "when": "view == CollectionOfModules",
           "group": "navigation"
-        },
-        {
-          "command": "pie-vscode.load",
-          "group": "navigation",
-          "when": "PieVscodeExt.supported && view == CollectionOfIB && PieVscodeExt.Useload"
-        },
-        {
-          "command": "pie-vscode.unload",
-          "group": "navigation",
-          "when": "PieVscodeExt.supported && view == CollectionOfIB && PieVscodeExt.Useunload"
-        },
-        {
-          "command": "pie-vscode.build",
-          "group": "navigation",
-          "when": "PieVscodeExt.supported && view == CollectionOfIB && PieVscodeExt.Usebuild"
-        },
-        {
-          "command": "pie-vscode.dump",
-          "group": "navigation",
-          "when": "PieVscodeExt.supported && view == CollectionOfIB && PieVscodeExt.Usedump"
-        },
-        {
-          "command": "pie-vscode.up_version",
-          "group": "0_main.pievscode@4",
-          "when": "PieVscodeExt.supported && view == CollectionOfIB && PieVscodeExt.Useup_version"
-        },
-        {
-          "command": "pie-vscode.up_build",
-          "group": "0_main.pievscode@5",
-          "when": "PieVscodeExt.supported && view == CollectionOfIB && PieVscodeExt.Useup_build"
-        },
-        {
-          "command": "pie-vscode.build_at",
-          "group": "0_main.pievscode@6",
-          "when": "PieVscodeExt.supported && view == CollectionOfIB && PieVscodeExt.Usebuild_at"
-        },
-        {
-          "command": "pie-vscode.dump_at",
-          "group": "0_main.pievscode@7",
-          "when": "PieVscodeExt.supported && view == CollectionOfIB && PieVscodeExt.Usedump_at"
-        },
-        {
-          "command": "pie-vscode.old_dump",
-          "group": "0_main.pievscode@8",
-          "when": "PieVscodeExt.supported && view == CollectionOfIB && PieVscodeExt.Useold_dump"
-        },
-        {
-          "command": "pie-vscode.form_code_validate",
-          "group": "0_main.pievscode@9",
-          "when": "PieVscodeExt.supported && view == CollectionOfIB && PieVscodeExt.Useform_code_validate"
         },
         {
           "command": "pie-vscode.close1C",

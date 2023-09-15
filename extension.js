@@ -26,7 +26,6 @@ const rootPath =
 function activate(context) {
 	let config = vscode.workspace.getConfiguration('PieVscodeExt');
 	let workspaceWorking = config.workspaceWorking && config.workspaceWorking.length > 0 ? config.workspaceWorking : undefined;
-	let pathPieFile = path.join(rootPath, 'piefile.py');
 	vscode.commands.executeCommand('setContext', 'PieVscodeExt.supported', true);
 	if (workspaceWorking) {
 		if (workspaceWorking !== rootPath) {
@@ -42,40 +41,10 @@ function activate(context) {
 	vscode.window.registerTreeDataProvider('CollectionOfModules', CollectionModules);
 	context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.refreshModules', () => CollectionModules.refresh()));
 
-	let regex = /^\s*def\s+(\w+)\s*\(/mg;
-	let matcher = [...fs.readFileSync(pathPieFile).toString().matchAll(regex)];
+	let extentionfile = JSON.parse(fs.readFileSync(context.extensionPath.replace(FS_REGEX, '/') + "/package.json").toString())
 
-	let pie_function = []
-	matcher.forEach(m => { pie_function.push(m[1]) })
-
-	pie_function.forEach(function (entrypoint) {
-		vscode.commands.executeCommand('setContext', 'PieVscodeExt.Use' + entrypoint, true);
-
-		context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.' + entrypoint, function (context) {
-
-			if (entrypoint == "load" && config.platformForOpenPath) {
-				setCurrentPlatform(config.platformForOpenPath)
-			};
-
-			if (entrypoint != "load" && config.platformForDumpPath) {
-				setCurrentPlatform(config.platformForDumpPath)
-			};
-
-			let task = new vscode.Task(
-				{
-					type: 'pie',
-					task: entrypoint
-				},
-				vscode.TaskScope.Workspace,
-				'pie ' + entrypoint,
-				'pie',
-				new vscode.ShellExecution('pie ' + entrypoint)
-			);
-			vscode.tasks.executeTask(task);
-			vscode.tasks.onDidEndTaskProcess(e => {
-				writeFileGitCurrentBranch(e.execution.task.name);
-			});
-		}));
+	extentionfile.contributes.menus["scm/title"].forEach(v => {
+		context.subscriptions.push(vscode.commands.registerCommand(v.command, (arg) => commandexec(arg, config, v.command)));
 	})
 
 	context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.setCurrentBase', function (IBCollection) {
@@ -130,31 +99,42 @@ function activate(context) {
 	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.downloadModule', function (ModuleCollection) {
-		let title = 'Downloading ... ' + ModuleCollection.name
-		let promise = vscode.window.withProgress(
-			{
-				location: vscode.ProgressLocation.Notification,
-				title: title,
-				cancellable: false,
-			},
-			async (progress, token) => {
-				progress.report({ increment: 0 });
-				await downloadModule(ModuleCollection.url).then(data => {
-					let filepath = path.join(rootPath, "nosync", ModuleCollection.filename)
-					fs.writeFile(filepath, data, function (err) {
-						if (err) {
-							console.log(err);
-						} else {
-							console.log("The file was saved!");
-						}
-					})
-				}).catch(error => {
-					log.apply(error)
-				});
-				progress.report({ increment: 100 });
+
+		const options = {
+			canSelectMany: false,
+			openLabel: 'Choose folder',
+			canSelectFolders: true,
+			canSelectFiles: false
+		};
+		vscode.window.showOpenDialog(options).then(fl => {
+			if (fl && fl[0]) {
+				let title = 'Downloading ... ' + ModuleCollection.name
+				let promise = vscode.window.withProgress(
+					{
+						location: vscode.ProgressLocation.Notification,
+						title: title,
+						cancellable: false,
+					},
+					async (progress, token) => {
+						progress.report({ increment: 0 });
+						await downloadModule(ModuleCollection.url).then(data => {
+							let filepath = path.join(fl[0].fsPath.replace(FS_REGEX, '/'), ModuleCollection.filename)
+							fs.writeFile(filepath, data, function (err) {
+								if (err) {
+									console.log(err);
+								} else {
+									console.log("The file was saved!");
+								}
+							})
+						}).catch(error => {
+							log.apply(error)
+						});
+						progress.report({ increment: 100 });
+					}
+				)
+				return promise
 			}
-		)
-		return promise
+		});
 	}));
 
 
@@ -199,6 +179,50 @@ module.exports = {
 	activate,
 	deactivate
 }
+const FS_REGEX = /\\/g;
+function getPathFromUri(uri) {
+	return uri.fsPath.replace(FS_REGEX, '/');
+};
+function commandexec(arg, config, entrypoint) {
+
+	let scope
+	if (arg) {
+		scope = getwsfolders(arg)
+	} else {
+		scope = vscode.TaskScope.Workspace
+	}
+
+	if (entrypoint == "load" && config.platformForOpenPath) {
+		setCurrentPlatform(config.platformForOpenPath)
+	};
+
+	if (entrypoint != "load" && config.platformForDumpPath) {
+		setCurrentPlatform(config.platformForDumpPath)
+	};
+
+	let task = new vscode.Task(
+		{
+			type: 'pie',
+			task: entrypoint
+		},
+		scope,
+		'pie ' + entrypoint,
+		'pie',
+		new vscode.ShellExecution('pie ' + entrypoint)
+	);
+	vscode.tasks.executeTask(task);
+	vscode.tasks.onDidEndTaskProcess(e => {
+		writeFileGitCurrentBranch(e.execution.task.name);
+	});
+
+	function getwsfolders(arg) {
+		for (let ws in vscode.workspace.workspaceFolders) {
+			if (vscode.workspace.workspaceFolders[ws].uri.fsPath === arg.rootUri.fspath) {
+				return vscode.workspace.workspaceFolders[ws];
+			}
+		};
+	}
+};
 
 async function executeTask(task) {
 	await vscode.tasks.executeTask(task);
