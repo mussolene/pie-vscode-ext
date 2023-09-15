@@ -3,175 +3,42 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CollectionOfIB = void 0;
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
-const { exec } = require('child_process');
 const vscode = require('vscode');
 const process = require('process');
 const fs = require('fs');
 const path = require('path');
 const https = require('https')
-const json = require('json')
 const envfile = require('envfile');
 const { log } = require('console');
-const rootPath =
-	vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0
-		? vscode.workspace.workspaceFolders[0].uri.fsPath
-		: undefined;
+const FS_REGEX = /\\/g;
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
-
 /**
  * @param {vscode.ExtensionContext} context
  */
 
 function activate(context) {
-	let config = vscode.workspace.getConfiguration('PieVscodeExt');
-	let workspaceWorking = config.workspaceWorking && config.workspaceWorking.length > 0 ? config.workspaceWorking : undefined;
 	vscode.commands.executeCommand('setContext', 'PieVscodeExt.supported', true);
-	if (workspaceWorking) {
-		if (workspaceWorking !== rootPath) {
-			vscode.commands.executeCommand('setContext', 'PieVscodeExt.supported', false);
-		}
-	};
 
 	let CollectionIB = new CollectionOfIB()
-	vscode.window.registerTreeDataProvider('CollectionOfIB', CollectionIB);
-	context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.refreshBases', () => CollectionIB.refresh()));
-
 	let CollectionModules = new CollectionOfModules()
+	vscode.window.registerTreeDataProvider('CollectionOfIB', CollectionIB);
 	vscode.window.registerTreeDataProvider('CollectionOfModules', CollectionModules);
-	context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.refreshModules', () => CollectionModules.refresh()));
-
-	let extentionfile = JSON.parse(fs.readFileSync(context.extensionPath.replace(FS_REGEX, '/') + "/package.json").toString())
-
-	extentionfile.contributes.menus["scm/title"].forEach(v => {
-		context.subscriptions.push(vscode.commands.registerCommand(v.command, (arg) => commandexec(arg, config, v.command.replace("pie-vscode.", ""))));
+	let pkgJson = context.extension.packageJSON;
+	pkgJson.contributes.menus["scm/title"].forEach(v => {
+		context.subscriptions.push(vscode.commands.registerCommand(v.command, (arg) => commandexec(arg.rootUri.fsPath.replace(FS_REGEX, "/"), v.command.replace("pie-vscode.", ""))));
 	})
 
-	context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.setCurrentBase', function (IBCollection) {
-		setCurrentDatabase(IBCollection.name);
-	}));
-
-	context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.close1C', function (IBCollection) {
-
-		//taskkill -im 1cv8.exe -f
-		//taskkill -im 1cv8c.exe -f
-		//taskkill -im 1cv8s.exe -f
-
-		let task = new vscode.Task(
-			{
-				type: 'taskkill',
-				task: 'taskkill 1cv8.exe'
-			},
-			vscode.TaskScope.Workspace,
-			'taskkill',
-			'taskkill 1cv8.exe',
-			new vscode.ProcessExecution('taskkill', ["-im", "1cv8.exe", "-f"])
-		);
-		let task1 = new vscode.Task(
-			{
-				type: 'taskkill',
-				task: 'taskkill 1cv8c.exe'
-			},
-			vscode.TaskScope.Workspace,
-			'taskkill',
-			'taskkill 1cv8c.exe',
-			new vscode.ProcessExecution('taskkill', ["-im", "1cv8c.exe", "-f"])
-		);
-		let task2 = new vscode.Task(
-			{
-				type: 'taskkill',
-				task: 'taskkill 1cv8s.exe'
-			},
-			vscode.TaskScope.Workspace,
-			'taskkill',
-			'taskkill 1cv8s.exe',
-			new vscode.ProcessExecution('taskkill', ["-im", "1cv8s.exe", "-f"])
-		);
-		executeTask(task);
-		executeTask(task1);
-		executeTask(task2);
-
-	}));
-
-	context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.setCurrentBaseAndLaunch', function (IBCollection) {
-		setCurrentDatabase(IBCollection.name);
-		vscode.commands.executeCommand('pie-vscode.load');
-	}));
-
-	context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.downloadModule', function (ModuleCollection) {
-
-		const options = {
-			canSelectMany: false,
-			openLabel: 'Choose folder',
-			canSelectFolders: true,
-			canSelectFiles: false
-		};
-		vscode.window.showOpenDialog(options).then(fl => {
-			if (fl && fl[0]) {
-				let title = 'Downloading ... ' + ModuleCollection.name
-				let promise = vscode.window.withProgress(
-					{
-						location: vscode.ProgressLocation.Notification,
-						title: title,
-						cancellable: false,
-					},
-					async (progress, token) => {
-						progress.report({ increment: 0 });
-						await downloadModule(ModuleCollection.url).then(data => {
-							let filepath = path.join(fl[0].fsPath.replace(FS_REGEX, '/'), ModuleCollection.filename)
-							fs.writeFile(filepath, data, function (err) {
-								if (err) {
-									console.log(err);
-								} else {
-									console.log("The file was saved!");
-								}
-							})
-						}).catch(error => {
-							log.apply(error)
-						});
-						progress.report({ increment: 100 });
-					}
-				)
-				return promise
-			}
-		});
-	}));
-
-
-	context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.start1C', function (IBCollection) {
-		let executeble = path.join(process.env.PROGRAMFILES, "1cv8", "common", "1CEstart.exe");
-
-		let task = new vscode.Task(
-			{
-				type: executeble,
-				task: " ENTERPRISE /IBName " + IBCollection.name
-			},
-			vscode.TaskScope.Workspace,
-			"1cestart",
-			" ENTERPRISE /IBName " + IBCollection.name,
-			new vscode.ProcessExecution(executeble, ["ENTERPRISE", "/IBName", IBCollection.name])
-		);
-		vscode.tasks.executeTask(task);
-	}));
-
-	context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.startDesigner', function (IBCollection) {
-		let executeble = path.join(process.env.PROGRAMFILES, "1cv8", "common", "1CEstart.exe");
-
-		let task = new vscode.Task(
-			{
-				type: executeble,
-				task: " DESIGNER /IBName " + IBCollection.name
-			},
-			vscode.TaskScope.Workspace,
-			"1cestart",
-			" DESIGNER /IBName " + IBCollection.name,
-			new vscode.ProcessExecution(executeble, ["DESIGNER", "/IBName", IBCollection.name])
-		);
-		vscode.tasks.executeTask(task);
-	}));
+	context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.refreshBases', () => CollectionIB.refresh()));
+	context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.refreshModules', () => CollectionModules.refresh()));
+	context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.setCurrentBase', IBCollection => commandSetCurrentBase(IBCollection)));
+	context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.close1C', commandClose1C));
+	context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.setCurrentBaseAndLaunch', IBCollection => commandSetCurrentBaseAndLaunch(IBCollection)));
+	context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.downloadModule', ModuleCollection => commandDownloadModule(ModuleCollection)));
+	context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.start1C', IBCollection => commandStart1C(IBCollection)));
+	context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.startDesigner', IBCollection => commandStartDesigner(IBCollection)));
 
 }
-
 // This method is called when your extension is deactivated
 function deactivate() { }
 
@@ -179,45 +46,190 @@ module.exports = {
 	activate,
 	deactivate
 }
-const FS_REGEX = /\\/g;
-function getPathFromUri(uri) {
-	return uri.fsPath.replace(FS_REGEX, '/');
-};
-function commandexec(arg, config, entrypoint) {
 
-	let scope = getwsfolders(arg);
-	let scopePath = arg.rootUri.fsPath.replace(FS_REGEX, "/");
-
-	let originEnv = getEnvData(scopePath).toString();
-
-	if (entrypoint == "load" && config.platformForOpenPath) {
-		setCurrentPlatform(config.platformForOpenPath, scopePath)
-	};
-
-	if (entrypoint != "load" && config.platformForDumpPath) {
-		setCurrentPlatform(config.platformForDumpPath, scopePath)
-	};
+function commandStartDesigner(IBCollection) {
+	let executeble = path.join(process.env.PROGRAMFILES, "1cv8", "common", "1CEstart.exe");
 
 	let task = new vscode.Task(
 		{
-			type: 'pie',
-			task: entrypoint,
-			options: { cwd: scopePath }
+			type: executeble,
+			task: " DESIGNER /IBName " + IBCollection.name
 		},
-		scope,
-		'pie ' + entrypoint,
-		'pie',
-		new vscode.ShellExecution('pie ' + entrypoint)
+		vscode.TaskScope.Workspace,
+		"1cestart",
+		" DESIGNER /IBName " + IBCollection.name,
+		new vscode.ProcessExecution(executeble, ["DESIGNER", "/IBName", IBCollection.name])
 	);
 	vscode.tasks.executeTask(task);
-	vscode.tasks.onDidEndTaskProcess(e => {
-		writeFileGitCurrentBranch(e.execution.task.name, scopePath);
-		setEnvData(scopePath, originEnv);
-	});
+}
 
-	function getwsfolders(arg) {
+function commandStart1C(IBCollection) {
+	let executeble = path.join(process.env.PROGRAMFILES, "1cv8", "common", "1CEstart.exe");
+
+	let task = new vscode.Task(
+		{
+			type: executeble,
+			task: " ENTERPRISE /IBName " + IBCollection.name
+		},
+		vscode.TaskScope.Workspace,
+		"1cestart",
+		" ENTERPRISE /IBName " + IBCollection.name,
+		new vscode.ProcessExecution(executeble, ["ENTERPRISE", "/IBName", IBCollection.name])
+	);
+	vscode.tasks.executeTask(task);
+}
+
+function commandDownloadModule(ModuleCollection) {
+	const options = {
+		canSelectMany: false,
+		openLabel: 'Choose folder',
+		canSelectFolders: true,
+		canSelectFiles: false
+	};
+	vscode.window.showOpenDialog(options).then(fl => {
+		if (fl[0]) {
+			let title = 'Downloading ... ' + ModuleCollection.name;
+			let promise = vscode.window.withProgress(
+				{
+					location: vscode.ProgressLocation.Notification,
+					title: title,
+					cancellable: false,
+				},
+				async (progress, token) => {
+					progress.report({ increment: 0 });
+					await downloadModule(ModuleCollection.url).then(data => {
+						let filepath = path.join(fl[0].fsPath.replace(FS_REGEX, '/'), ModuleCollection.filename);
+						fs.writeFile(filepath, data, function (err) {
+							if (err) {
+								console.log(err);
+							} else {
+								console.log("The file was saved!");
+							}
+						});
+					}).catch(error => {
+						log.apply(error);
+					});
+					progress.report({ increment: 100 });
+				}
+			);
+			return promise;
+		}
+	});
+}
+
+function commandSetCurrentBaseAndLaunch(IBCollection) {
+	let wsfolders = vscode.workspace.workspaceFolders;
+
+	if (wsfolders.length > 1) {
+		let wsname = [];
+		wsfolders.forEach(ws => { wsname.push(ws.uri.fsPath.replace(FS_REGEX, '/')); });
+		vscode.window.showQuickPick(wsname).then(scopePath => {
+			commandexec(scopePath, "load", IBCollection.name);
+		});
+	} else {
+		commandexec(wsfolders[0].uri.fsPath.replace(FS_REGEX, '/'), "load", IBCollection.name);
+	}
+}
+
+function commandClose1C() {
+	let task = new vscode.Task(
+		{
+			type: 'taskkill',
+			task: 'taskkill 1cv8.exe'
+		},
+		vscode.TaskScope.Workspace,
+		'taskkill',
+		'taskkill 1cv8.exe',
+		new vscode.ProcessExecution('taskkill', ["-im", "1cv8.exe", "-f"])
+	);
+	let task1 = new vscode.Task(
+		{
+			type: 'taskkill',
+			task: 'taskkill 1cv8c.exe'
+		},
+		vscode.TaskScope.Workspace,
+		'taskkill',
+		'taskkill 1cv8c.exe',
+		new vscode.ProcessExecution('taskkill', ["-im", "1cv8c.exe", "-f"])
+	);
+	let task2 = new vscode.Task(
+		{
+			type: 'taskkill',
+			task: 'taskkill 1cv8s.exe'
+		},
+		vscode.TaskScope.Workspace,
+		'taskkill',
+		'taskkill 1cv8s.exe',
+		new vscode.ProcessExecution('taskkill', ["-im", "1cv8s.exe", "-f"])
+	);
+	executeTask(task);
+	executeTask(task1);
+	executeTask(task2);
+}
+
+function commandSetCurrentBase(IBCollection) {
+	let wsfolders = vscode.workspace.workspaceFolders;
+	if (wsfolders.length > 1) {
+		let wsname = [];
+		wsfolders.forEach(ws => { wsname.push(ws.uri.fsPath.replace(FS_REGEX, '/')); });
+		vscode.window.showQuickPick(wsname).then(scopePath => {
+			setCurrentDatabase(IBCollection.name, scopePath);
+		});
+	} else {
+		setCurrentDatabase(IBCollection.name, wsfolders[0].uri.fsPath.replace(FS_REGEX, '/'));
+	}
+}
+
+function commandexec(scopePath, entrypoint, dbname = '') {
+	let config = vscode.workspace.getConfiguration('PieVscodeExt');
+	let scope = getwsfolders(scopePath);
+	let originEnv = getEnvData(scopePath).toString();
+
+	if (dbname) {
+		execTaskScope(dbname)
+	} else {
+		let ibs = getIBCollectionAll();
+		let namesib = []
+		ibs.forEach(ib => { namesib.push(ib.name) })
+		vscode.window.showQuickPick(namesib).then(name => {
+			execTaskScope(name)
+		});
+	}
+
+	function execTaskScope(name) {
+		if (name) {
+			setCurrentDatabase(name, scopePath)
+		}
+
+		if (entrypoint == "load" && config.platformForOpenPath) {
+			setCurrentPlatform(config.platformForOpenPath, scopePath)
+		};
+
+		if (entrypoint != "load" && config.platformForDumpPath) {
+			setCurrentPlatform(config.platformForDumpPath, scopePath)
+		};
+
+		let task = new vscode.Task(
+			{
+				type: 'pie',
+				task: entrypoint,
+				options: { cwd: scopePath }
+			},
+			scope,
+			'pie ' + entrypoint,
+			'pie',
+			new vscode.ShellExecution('pie ' + entrypoint)
+		);
+		vscode.tasks.executeTask(task);
+		vscode.tasks.onDidEndTaskProcess(e => {
+			writeFileGitCurrentBranch(e.execution.task.name, scopePath);
+			setEnvData(scopePath, originEnv);
+		});
+	}
+
+	function getwsfolders(scopePath) {
 		for (let ws in vscode.workspace.workspaceFolders) {
-			if (vscode.workspace.workspaceFolders[ws].uri.fsPath === arg.rootUri.fsPath) {
+			if (vscode.workspace.workspaceFolders[ws].uri.fsPath.replace(FS_REGEX, "/") === scopePath) {
 				return vscode.workspace.workspaceFolders[ws];
 			}
 		};
@@ -252,11 +264,11 @@ function writeFileGitCurrentBranch(commandName, scopePath) {
 	const branchName = require("child_process").execSync(exe_command).toString().replace(/\n/g, '').trim();
 
 	const fileName = ''.concat(branchName, '.txt');
-	const pathToFile = path.join(rootPath, catalog, fileName);
+	const pathToFile = path.join(scopePath, catalog, fileName);
 
 	fs.writeFile(pathToFile, "", (err) => {
 		if (err) {
-			vscode.window.showInformationMessage(err);
+			vscode.window.showInformationMessage(err.message);
 		};
 	});
 }
@@ -271,9 +283,9 @@ function pathExists(p) {
 	return true;
 }
 
-function setCurrentDatabase(name) {
+function setCurrentDatabase(name, scopePath) {
 
-	const pathenv = path.join(rootPath, '.env');
+	const pathenv = path.join(scopePath, '.env');
 
 	if (!pathExists(pathenv)) {
 		fs.writeFileSync(pathenv, "")
@@ -347,100 +359,67 @@ function parseINIString(data) {
 		};
 	});
 	return value;
-}
-
-class CollectionOfIB {
-
-	_onDidChangeTreeData = new vscode.EventEmitter();
-	onDidChangeTreeData = this._onDidChangeTreeData.event;
+};
 
 
-	refresh() {
-		this._onDidChangeTreeData.fire();
-	}
-
-	getTreeItem(element) {
-		return element;
-	}
-
-	getChildren(element) {
-		if (element) {
-			return Promise.resolve(
-				this.getIBCollection(String(element.path + '/').replace(/\/\//g, '/') + element.name)
-			);
+function getIBCollection(folder) {
+	const toIB = (name, ib) => {
+		if (!ib.Connect) {
+			return new IBCollection(name, ib.Folder, "", vscode.TreeItemCollapsibleState.Collapsed, ib.Connect);
 		} else {
-			return Promise.resolve(
-				this.getIBCollection('/')
-			);
-		};
-	}
+			return new IBCollection(name, ib.Folder, ib.Connect, vscode.TreeItemCollapsibleState.None, ib.Connect)
+		}
+	};
 
-	getIBCollection(folder) {
-		const toIB = (name, ib) => {
-			if (!ib.Connect) {
-				return new IBCollection(name, ib.Folder, "", vscode.TreeItemCollapsibleState.Collapsed);
-			} else {
-				return new IBCollection(name, ib.Folder, ib.Connect, vscode.TreeItemCollapsibleState.None)
-			}
-		};
+	let pathib = path.join(process.env.APPDATA, "1C", "1CEStart", "ibases.v8i");
+	let pathcfg = path.join(process.env.APPDATA, "1C", "1CEStart", "1CEStart.cfg");
+	let parsedFile_pathib = parseINIString(fs.readFileSync(pathib).toString());
+	let parsedFile_pathcfg = parseINIString(fs.readFileSync(pathcfg, { encoding: 'utf16le' }).toString());
+	let CommonInfoBase = parsedFile_pathcfg.CommonInfoBases ? parseINIString(fs.readFileSync(parsedFile_pathcfg.CommonInfoBases).toString()) : {};
 
-		let pathib = path.join(process.env.APPDATA, "1C", "1CEStart", "ibases.v8i");
-		let pathcfg = path.join(process.env.APPDATA, "1C", "1CEStart", "1CEStart.cfg");
-		let parsedFile_pathib = parseINIString(fs.readFileSync(pathib).toString());
-		let parsedFile_pathcfg = parseINIString(fs.readFileSync(pathcfg, { encoding: 'utf16le' }).toString());
-		let CommonInfoBase = parsedFile_pathcfg.CommonInfoBases ? parseINIString(fs.readFileSync(parsedFile_pathcfg.CommonInfoBases).toString()) : {};
+	let SortedBase = {};
 
-		let SortedBase = {};
+	Object.keys(CommonInfoBase).sort().forEach(ib => { SortedBase[ib] = CommonInfoBase[ib] });
+	Object.keys(parsedFile_pathib).sort().forEach(ib => { SortedBase[ib] = parsedFile_pathib[ib] });
 
-		Object.keys(CommonInfoBase).sort().forEach(ib => { SortedBase[ib] = CommonInfoBase[ib] });
-		Object.keys(parsedFile_pathib).sort().forEach(ib => { SortedBase[ib] = parsedFile_pathib[ib] });
+	const CollectionOfIB2 = SortedBase
+		? Object.keys(SortedBase).map(ib => toIB(ib, SortedBase[ib]))
+		: [];
 
-		const CollectionOfIB2 = SortedBase
-			? Object.keys(SortedBase).map(ib => toIB(ib, SortedBase[ib]))
-			: [];
+	let filterbase = CollectionOfIB2.filter(ib => { return ib.path == folder });
 
-		let filterbase = CollectionOfIB2.filter(ib => { return ib.path == folder });
-
-		return filterbase;
-	}
+	return filterbase;
 }
 
-exports.CollectionOfIB = CollectionOfIB;
-
-class CollectionOfModules {
-
-	_onDidChangeTreeData = new vscode.EventEmitter();
-	onDidChangeTreeData = this._onDidChangeTreeData.event;
-
-
-	refresh() {
-		this._onDidChangeTreeData.fire();
-	}
-
-	getTreeItem(element) {
-		return element;
-	}
-
-	getChildren(element) {
-		if (element) {
-			return Promise.resolve(
-				this.getModuleContents(element.name)
-			);
+function getIBCollectionAll() {
+	const toIB = (name, ib) => {
+		if (!ib.Connect) {
+			return new IBCollection(name, ib.Folder, "", vscode.TreeItemCollapsibleState.Collapsed, ib.Connect);
 		} else {
-			return Promise.resolve(
-				this.getModuleCollection()
-			);
-		};
-	}
+			return new IBCollection(name, ib.Folder, ib.Connect, vscode.TreeItemCollapsibleState.None, ib.Connect)
+		}
+	};
 
-	getModuleCollection() {
-		return fetchModules()
-	}
+	let pathib = path.join(process.env.APPDATA, "1C", "1CEStart", "ibases.v8i");
+	let pathcfg = path.join(process.env.APPDATA, "1C", "1CEStart", "1CEStart.cfg");
+	let parsedFile_pathib = parseINIString(fs.readFileSync(pathib).toString());
+	let parsedFile_pathcfg = parseINIString(fs.readFileSync(pathcfg, { encoding: 'utf16le' }).toString());
+	let CommonInfoBase = parsedFile_pathcfg.CommonInfoBases ? parseINIString(fs.readFileSync(parsedFile_pathcfg.CommonInfoBases).toString()) : {};
 
-	getModuleContents(version) {
-		return fetchContent(version)
-	}
+	let SortedBase = {};
+
+	Object.keys(CommonInfoBase).sort().forEach(ib => { SortedBase[ib] = CommonInfoBase[ib] });
+	Object.keys(parsedFile_pathib).sort().forEach(ib => { SortedBase[ib] = parsedFile_pathib[ib] });
+
+	const CollectionOfIB2 = SortedBase
+		? Object.keys(SortedBase).map(ib => toIB(ib, SortedBase[ib]))
+		: [];
+
+	let filterbase = CollectionOfIB2.filter(ib => { return ib.Connect !== "" });
+
+	return filterbase;
 }
+
 async function fetchContent(version) {
 	const toContent = (name, description, url, filename) => {
 		return new ModuleCollection(name, description, vscode.TreeItemCollapsibleState.None, url, filename)
@@ -515,14 +494,74 @@ async function downloadModule(url) {
 	return result
 };
 
+class CollectionOfIB {
+	_onDidChangeTreeData = new vscode.EventEmitter();
+	onDidChangeTreeData = this._onDidChangeTreeData.event;
+
+
+	refresh() {
+		this._onDidChangeTreeData.fire();
+	}
+
+	getTreeItem(element) {
+		return element;
+	}
+
+	getChildren(element) {
+		if (element) {
+			return Promise.resolve(
+				getIBCollection(String(element.path + '/').replace(/\/\//g, '/') + element.name)
+			);
+		} else {
+			return Promise.resolve(
+				getIBCollection('/')
+			);
+		};
+	}
+}
+exports.CollectionOfIB = CollectionOfIB;
+class CollectionOfModules {
+	_onDidChangeTreeData = new vscode.EventEmitter();
+	onDidChangeTreeData = this._onDidChangeTreeData.event;
+
+
+	refresh() {
+		this._onDidChangeTreeData.fire();
+	}
+
+	getTreeItem(element) {
+		return element;
+	}
+
+	getChildren(element) {
+		if (element) {
+			return Promise.resolve(
+				this.getModuleContents(element.name)
+			);
+		} else {
+			return Promise.resolve(
+				this.getModuleCollection()
+			);
+		};
+	}
+
+	getModuleCollection() {
+		return fetchModules()
+	}
+
+	getModuleContents(version) {
+		return fetchContent(version)
+	}
+}
 exports.CollectionOfModules = CollectionOfModules;
 class IBCollection extends vscode.TreeItem {
-	constructor(name, path, description, collapsibleState) {
+	constructor(name, path, description, collapsibleState, Connect) {
 		super(name, collapsibleState);
 		this.name = name;
 		this.path = path;
 		this.tooltip = `${this.name}`;
 		this.description = description;
+		this.Connect = Connect;
 		this.collapsibleState = collapsibleState;
 	}
 }

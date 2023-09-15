@@ -4,7 +4,7 @@
   "description": "Working pie in vscode",
   "license": "MIT",
   "icon": "images/logo.png",
-  "version": "0.0.30",
+  "version": "0.0.31",
   "publisher": "mussolene",
   "repository": {
     "type": "git",
