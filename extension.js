@@ -44,7 +44,7 @@ function activate(context) {
 	let extentionfile = JSON.parse(fs.readFileSync(context.extensionPath.replace(FS_REGEX, '/') + "/package.json").toString())
 
 	extentionfile.contributes.menus["scm/title"].forEach(v => {
-		context.subscriptions.push(vscode.commands.registerCommand(v.command, (arg) => commandexec(arg, config, v.command)));
+		context.subscriptions.push(vscode.commands.registerCommand(v.command, (arg) => commandexec(arg, config, v.command.replace("pie-vscode.", ""))));
 	})
 
 	context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.setCurrentBase', function (IBCollection) {
@@ -185,25 +185,24 @@ function getPathFromUri(uri) {
 };
 function commandexec(arg, config, entrypoint) {
 
-	let scope
-	if (arg) {
-		scope = getwsfolders(arg)
-	} else {
-		scope = vscode.TaskScope.Workspace
-	}
+	let scope = getwsfolders(arg);
+	let scopePath = arg.rootUri.fsPath.replace(FS_REGEX, "/");
+
+	let originEnv = getEnvData(scopePath).toString();
 
 	if (entrypoint == "load" && config.platformForOpenPath) {
-		setCurrentPlatform(config.platformForOpenPath)
+		setCurrentPlatform(config.platformForOpenPath, scopePath)
 	};
 
 	if (entrypoint != "load" && config.platformForDumpPath) {
-		setCurrentPlatform(config.platformForDumpPath)
+		setCurrentPlatform(config.platformForDumpPath, scopePath)
 	};
 
 	let task = new vscode.Task(
 		{
 			type: 'pie',
-			task: entrypoint
+			task: entrypoint,
+			options: { cwd: scopePath }
 		},
 		scope,
 		'pie ' + entrypoint,
@@ -212,12 +211,13 @@ function commandexec(arg, config, entrypoint) {
 	);
 	vscode.tasks.executeTask(task);
 	vscode.tasks.onDidEndTaskProcess(e => {
-		writeFileGitCurrentBranch(e.execution.task.name);
+		writeFileGitCurrentBranch(e.execution.task.name, scopePath);
+		setEnvData(scopePath, originEnv);
 	});
 
 	function getwsfolders(arg) {
 		for (let ws in vscode.workspace.workspaceFolders) {
-			if (vscode.workspace.workspaceFolders[ws].uri.fsPath === arg.rootUri.fspath) {
+			if (vscode.workspace.workspaceFolders[ws].uri.fsPath === arg.rootUri.fsPath) {
 				return vscode.workspace.workspaceFolders[ws];
 			}
 		};
@@ -235,7 +235,7 @@ async function executeTask(task) {
 	});
 }
 
-function writeFileGitCurrentBranch(commandName) {
+function writeFileGitCurrentBranch(commandName, scopePath) {
 
 	let catalog = '';
 
@@ -247,7 +247,7 @@ function writeFileGitCurrentBranch(commandName) {
 		return;
 	};
 
-	const exe_command = ''.concat('git -C ', rootPath, ' branch --show-current');
+	const exe_command = ''.concat('git -C ', scopePath, ' branch --show-current');
 
 	const branchName = require("child_process").execSync(exe_command).toString().replace(/\n/g, '').trim();
 
@@ -284,9 +284,9 @@ function setCurrentDatabase(name) {
 	fs.writeFileSync(pathenv, envfile.stringify(parsedFile))
 }
 
-function setCurrentPlatform(platformPath) {
+function setCurrentPlatform(platformPath, scopePath) {
 
-	const pathenv = path.join(rootPath, '.env');
+	const pathenv = path.join(scopePath, '.env');
 
 	if (!pathExists(pathenv)) {
 		fs.writeFileSync(pathenv, "")
@@ -295,6 +295,28 @@ function setCurrentPlatform(platformPath) {
 	let parsedFile = envfile.parse(fs.readFileSync(pathenv).toString());
 	parsedFile.PIE_V83_BIN = platformPath;
 	fs.writeFileSync(pathenv, envfile.stringify(parsedFile))
+}
+
+function getEnvData(scopePath) {
+
+	const pathenv = path.join(scopePath, '.env');
+
+	if (!pathExists(pathenv)) {
+		fs.writeFileSync(pathenv, "")
+	}
+
+	return fs.readFileSync(pathenv)
+}
+
+function setEnvData(scopePath, EnvData) {
+
+	const pathenv = path.join(scopePath, '.env');
+
+	if (!pathExists(pathenv)) {
+		fs.writeFileSync(pathenv, "")
+	}
+
+	fs.writeFileSync(pathenv, EnvData)
 }
 
 function parseINIString(data) {
