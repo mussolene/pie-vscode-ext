@@ -4,7 +4,7 @@
   "description": "Working pie in vscode",
   "license": "MIT",
   "icon": "images/logo.png",
-  "version": "0.0.31",
+  "version": "0.0.32",
   "publisher": "mussolene",
   "repository": {
     "type": "git",
@@ -257,12 +257,12 @@
       "scm": [
         {
           "id": "CollectionOfIB",
-          "name": "Расширение работы с Pie",
+          "name": "Список баз 1С",
           "when": "PieVscodeExt.supported"
         },
         {
           "id": "CollectionOfModules",
-          "name": "Модули Диадок",
+          "name": "Сервис обновлений",
           "when": "PieVscodeExt.supported"
         }
       ]

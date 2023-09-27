@@ -66,17 +66,32 @@ function commandStartDesigner(IBCollection) {
 function commandStart1C(IBCollection) {
 	let executeble = path.join(process.env.PROGRAMFILES, "1cv8", "common", "1CEstart.exe");
 
-	let task = new vscode.Task(
-		{
-			type: executeble,
-			task: " ENTERPRISE /IBName " + IBCollection.name
-		},
-		vscode.TaskScope.Workspace,
-		"1cestart",
-		" ENTERPRISE /IBName " + IBCollection.name,
-		new vscode.ProcessExecution(executeble, ["ENTERPRISE", "/IBName", IBCollection.name])
-	);
-	vscode.tasks.executeTask(task);
+	let configs = []
+	let pathconfig = path.join(vscode.workspace.workspaceFolders[0].uri.fsPath.replace(FS_REGEX, '/'), "tools", 'diadoc-config')
+	const fs = require('fs');
+	fs.readdirSync(pathconfig).forEach(file => {
+		configs.push(file);
+	});
+
+	vscode.window.showQuickPick(configs).then(scopePath => {
+		let execparam = ["ENTERPRISE", "/IBName", IBCollection.name]
+		if (scopePath) {
+			execparam = ["ENTERPRISE", "/IBName", IBCollection.name, "/C", "diadoc-config=" + path.join(pathconfig, scopePath)];
+		}
+		let task = new vscode.Task(
+			{
+				type: executeble,
+				task: " ENTERPRISE /IBName " + IBCollection.name
+			},
+			vscode.TaskScope.Workspace,
+			"1cestart",
+			" ENTERPRISE /IBName " + IBCollection.name,
+			new vscode.ProcessExecution(executeble, execparam)
+		);
+		vscode.tasks.executeTask(task);
+	});
+
+
 }
 
 function commandDownloadModule(ModuleCollection) {
@@ -425,7 +440,7 @@ async function fetchContent(version) {
 		return new ModuleCollection(name, description, vscode.TreeItemCollapsibleState.None, url, filename)
 	};
 	let config = vscode.workspace.getConfiguration('PieVscodeExt')
-	let url = config.UrlUpdateService + "/1c/v1/diadoc_um/versions/" + version;
+	let url = config.UrlUpdateService + "/" + version;
 	let promise = new Promise((resolve, reject) => {
 		let data = "";
 		https.get(url, res => {
@@ -458,7 +473,7 @@ async function fetchModules() {
 		return new ModuleCollection(name, description, vscode.TreeItemCollapsibleState.Collapsed, "", "")
 	};
 	let config = vscode.workspace.getConfiguration('PieVscodeExt')
-	let url = config.UrlUpdateService + "/1c/v1/diadoc_um/versions";
+	let url = config.UrlUpdateService;
 	let promise = new Promise((resolve, reject) => {
 		let data = "";
 		https.get(url, res => {
