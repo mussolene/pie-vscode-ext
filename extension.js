@@ -200,7 +200,9 @@ function commandexec(scopePath, entrypoint, dbname = '') {
 	let scope = getwsfolders(scopePath);
 	let originEnv = getEnvData(scopePath).toString();
 
-	if (dbname) {
+	let exclude_entrypoint = ['load', 'dump']
+
+	if (dbname || !(exclude_entrypoint.includes(entrypoint))) {
 		execTaskScope(dbname)
 	} else {
 		let ibs = getIBCollectionAll();
