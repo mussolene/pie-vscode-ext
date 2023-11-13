@@ -423,17 +423,22 @@ function getIBCollectionAll() {
 		}
 	};
 
-	let pathib = path.join(process.env.APPDATA, "1C", "1CEStart", "ibases.v8i");
-	let pathcfg = path.join(process.env.APPDATA, "1C", "1CEStart", "1CEStart.cfg");
+	let root_config_i8 = path.join(process.env.APPDATA, "1C")
+
+	if (process.platform == 'linux') {
+		root_config_i8 = path.join(process.env.HOME, ".1C")
+	}
+
+	let pathib = path.join(root_config_i8, "1cestart", "ibases.v8i");
+	let pathcfg = path.join(root_config_i8, "1cestart", "1cestart.cfg");
 	let parsedFile_pathib = parseINIString(fs.readFileSync(pathib).toString());
 	let parsedFile_pathcfg = parseINIString(fs.readFileSync(pathcfg, { encoding: 'utf16le' }).toString());
+
 	let CommonInfoBase = parsedFile_pathcfg.CommonInfoBases ? parseINIString(fs.readFileSync(parsedFile_pathcfg.CommonInfoBases).toString()) : {};
-
-	let SortedBase = {};
-
 	Object.keys(CommonInfoBase).sort().forEach(ib => { SortedBase[ib] = CommonInfoBase[ib] });
 	Object.keys(parsedFile_pathib).sort().forEach(ib => { SortedBase[ib] = parsedFile_pathib[ib] });
 
+	let SortedBase = {};
 	const CollectionOfIB2 = SortedBase
 		? Object.keys(SortedBase).map(ib => toIB(ib, SortedBase[ib]))
 		: [];
