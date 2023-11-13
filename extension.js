@@ -226,16 +226,22 @@ function commandexec(scopePath, entrypoint, dbname = '') {
 			setCurrentPlatform(config.platformForDumpPath, scopePath)
 		};
 
+		let executor = "pie"
+
+		if (process.platform == "linux") {
+			executor = "python3 -m kontur.pie"
+		}
+
 		let task = new vscode.Task(
 			{
-				type: 'pie',
+				type: executor,
 				task: entrypoint,
 				options: { cwd: scopePath }
 			},
 			scope,
-			'pie ' + entrypoint,
-			'pie',
-			new vscode.ShellExecution('pie ' + entrypoint)
+			executor + ' ' + entrypoint,
+			executor,
+			new vscode.ShellExecution(executor + ' ' + entrypoint)
 		);
 		vscode.tasks.executeTask(task);
 		vscode.tasks.onDidEndTaskProcess(e => {
