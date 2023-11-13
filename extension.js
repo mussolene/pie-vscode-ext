@@ -423,14 +423,15 @@ function getIBCollectionAll() {
 		}
 	};
 
-	let root_config_i8 = path.join(process.env.APPDATA, "1C")
+	let pathib = path.join(process.env.APPDATA, "1C", "1cestart", "ibases.v8i");
+	let pathcfg = path.join(process.env.APPDATA, "1C", "1cestart", "1cestart.cfg");
 
 	if (process.platform == 'linux') {
-		root_config_i8 = path.join(process.env.HOME, ".1C")
+		pathib = path.join(process.env.HOME, ".1C", "1cestart", "ibases.v8i");
+		pathcfg = path.join(process.env.HOME, ".1C", "1cestart", "1cestart.cfg");
 	}
 
-	let pathib = path.join(root_config_i8, "1cestart", "ibases.v8i");
-	let pathcfg = path.join(root_config_i8, "1cestart", "1cestart.cfg");
+
 	let parsedFile_pathib = parseINIString(fs.readFileSync(pathib).toString());
 	let parsedFile_pathcfg = parseINIString(fs.readFileSync(pathcfg, { encoding: 'utf16le' }).toString());
 
