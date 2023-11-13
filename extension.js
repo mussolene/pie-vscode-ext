@@ -394,8 +394,17 @@ function getIBCollection(folder) {
 		}
 	};
 
-	let pathib = path.join(process.env.APPDATA, "1C", "1CEStart", "ibases.v8i");
-	let pathcfg = path.join(process.env.APPDATA, "1C", "1CEStart", "1CEStart.cfg");
+	let pathib = "";
+	let pathcfg = "";
+
+	if (process.platform == 'linux') {
+		pathib = path.join(process.env.HOME, ".1C", "1cestart", "ibases.v8i");
+		pathcfg = path.join(process.env.HOME, ".1C", "1cestart", "1cestart.cfg");
+	} else {
+		pathib = path.join(process.env.APPDATA, "1C", "1cestart", "ibases.v8i");
+		pathcfg = path.join(process.env.APPDATA, "1C", "1cestart", "1cestart.cfg");
+	}
+
 	let parsedFile_pathib = parseINIString(fs.readFileSync(pathib).toString());
 	let parsedFile_pathcfg = parseINIString(fs.readFileSync(pathcfg, { encoding: 'utf16le' }).toString());
 	let CommonInfoBase = parsedFile_pathcfg.CommonInfoBases ? parseINIString(fs.readFileSync(parsedFile_pathcfg.CommonInfoBases).toString()) : {};
@@ -423,12 +432,15 @@ function getIBCollectionAll() {
 		}
 	};
 
-	let pathib = path.join(process.env.APPDATA, "1C", "1cestart", "ibases.v8i");
-	let pathcfg = path.join(process.env.APPDATA, "1C", "1cestart", "1cestart.cfg");
+	let pathib = "";
+	let pathcfg = "";
 
 	if (process.platform == 'linux') {
 		pathib = path.join(process.env.HOME, ".1C", "1cestart", "ibases.v8i");
 		pathcfg = path.join(process.env.HOME, ".1C", "1cestart", "1cestart.cfg");
+	} else {
+		pathib = path.join(process.env.APPDATA, "1C", "1cestart", "ibases.v8i");
+		pathcfg = path.join(process.env.APPDATA, "1C", "1cestart", "1cestart.cfg");
 	}
 
 
