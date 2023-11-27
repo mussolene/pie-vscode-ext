@@ -26,7 +26,7 @@ function activate(context) {
 	vscode.window.registerTreeDataProvider('CollectionOfModules', CollectionModules);
 	let pkgJson = context.extension.packageJSON;
 	pkgJson.contributes.menus["scm/title"].forEach(v => {
-		context.subscriptions.push(vscode.commands.registerCommand(v.command, (arg) => commandexec(arg.rootUri.fsPath.replace(FS_REGEX, "/"), v.command.replace("pie-vscode.", ""))));
+		context.subscriptions.push(vscode.commands.registerCommand(v.command, (arg) => commandexec(arg.rootUri.fsPath, v.command.replace("pie-vscode.", ""))));
 	})
 
 	context.subscriptions.push(vscode.commands.registerCommand('pie-vscode.refreshBases', () => CollectionIB.refresh()));
@@ -48,7 +48,13 @@ module.exports = {
 }
 
 function commandStartDesigner(IBCollection) {
-	let executeble = path.join(process.env.PROGRAMFILES, "1cv8", "common", "1CEstart.exe");
+	let executeble = ""
+
+	if (process.platform == 'linux') {
+		executeble = path.join("opt", "1cv8", "common", "1cestart");
+	} else {
+		executeble = path.join(process.env.PROGRAMFILES, "1cv8", "common", "1CEstart.exe");
+	}
 
 	let task = new vscode.Task(
 		{
@@ -64,7 +70,13 @@ function commandStartDesigner(IBCollection) {
 }
 
 function commandStart1C(IBCollection) {
-	let executeble = path.join(process.env.PROGRAMFILES, "1cv8", "common", "1CEstart.exe");
+	let executeble = ""
+
+	if (process.platform == 'linux') {
+		executeble = path.join("opt", "1cv8", "common", "1cestart");
+	} else {
+		executeble = path.join(process.env.PROGRAMFILES, "1cv8", "common", "1CEstart.exe");
+	}
 
 	let configs = []
 	let pathconfig = path.join(vscode.workspace.workspaceFolders[0].uri.fsPath.replace(FS_REGEX, '/'), "tools", 'diadoc-config')
@@ -195,7 +207,8 @@ function commandSetCurrentBase(IBCollection) {
 	}
 }
 
-function commandexec(scopePath, entrypoint, dbname = '') {
+function commandexec(scopePathArg, entrypoint, dbname = '') {
+	let scopePath = scopePathArg.replace(FS_REGEX, "/")
 	let config = vscode.workspace.getConfiguration('PieVscodeExt');
 	let scope = getwsfolders(scopePath);
 	let originEnv = getEnvData(scopePath).toString();
@@ -222,7 +235,7 @@ function commandexec(scopePath, entrypoint, dbname = '') {
 			setCurrentPlatform(config.platformForOpenPath, scopePath)
 		};
 
-		if (entrypoint != "load" && config.platformForDumpPath) {
+		if (entrypoint != "dump" && config.platformForDumpPath) {
 			setCurrentPlatform(config.platformForDumpPath, scopePath)
 		};
 
@@ -247,6 +260,7 @@ function commandexec(scopePath, entrypoint, dbname = '') {
 		vscode.tasks.onDidEndTaskProcess(e => {
 			writeFileGitCurrentBranch(e.execution.task.name, scopePath);
 			setEnvData(scopePath, originEnv);
+			sendVersionToGitMessage(e.execution.task.name, scopePathArg);
 		});
 	}
 
@@ -258,6 +272,45 @@ function commandexec(scopePath, entrypoint, dbname = '') {
 		};
 	}
 };
+
+function sendVersionToGitMessage(CommandName, scopePath) {
+
+	if (!(CommandName.search('up_build') != -1 || CommandName.search('up_version') != -1)) {
+		return;
+	}
+
+	let config = vscode.workspace.getConfiguration('PieVscodeExt');
+	let pathConfigXml = config.pathConfigXml;
+
+	if (!pathConfigXml) {
+		return;
+	}
+
+	let gitExtension = vscode.extensions.getExtension('vscode.git');
+	let api = gitExtension.exports.getAPI(1);
+	let selected = api.repositories.find((repo) => repo.rootUri.fsPath === scopePath);
+	let dataConfig = fs.readFileSync(pathConfigXml).toString();
+
+	let message = selected.inputBox.value;
+	let version = dataConfig.match('<Version>(.+?)</Version>');
+
+	let messVersion = '';
+
+	if (CommandName.search('up_version') != -1) {
+		let arrVer = version[1].split('.');
+		arrVer.pop();
+		messVersion = arrVer.join('.');
+	} else {
+		messVersion = version[1];
+	}
+
+	if (message.search(messVersion) != - 1) {
+		return;
+	}
+
+	selected.inputBox.value = messVersion + " " + message;
+
+}
 
 async function executeTask(task) {
 	await vscode.tasks.executeTask(task);

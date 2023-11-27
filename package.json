@@ -4,7 +4,7 @@
   "description": "Working pie in vscode",
   "license": "MIT",
   "icon": "images/logo.png",
-  "version": "0.0.39",
+  "version": "0.0.40",
   "publisher": "mussolene",
   "repository": {
     "type": "git",
@@ -59,6 +59,11 @@
           "type": "string",
           "default": "",
           "description": "Пароль пользователя базы данных"
+        },
+        "PieVscodeExt.pathConfigXml": {
+          "type": "string",
+          "default": "",
+          "description": "Путь к файлу Configuration.xml для использования в подстановке версии из конфигурации в текст коммита"
         }
       }
     },
