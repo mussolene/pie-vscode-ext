@@ -78,8 +78,10 @@ function commandStart1C(IBCollection) {
 		executeble = path.join(process.env.PROGRAMFILES, "1cv8", "common", "1CEstart.exe");
 	}
 
+	let config = vscode.workspace.getConfiguration('PieVscodeExt');
 	let configs = []
-	let pathconfig = path.join(vscode.workspace.workspaceFolders[0].uri.fsPath.replace(FS_REGEX, '/'), "tools", 'diadoc-config')
+	let scopePath = vscode.workspace.workspaceFolders[0].uri.fsPath.replace(FS_REGEX, '/')
+	let pathconfig = path.join(scopePath, config.PathConfigurationFile)
 	const fs = require('fs');
 	fs.readdirSync(pathconfig).forEach(file => {
 		configs.push(file);
@@ -102,7 +104,6 @@ function commandStart1C(IBCollection) {
 		);
 		vscode.tasks.executeTask(task);
 	});
-
 
 }
 
@@ -289,7 +290,8 @@ function sendVersionToGitMessage(CommandName, scopePath) {
 	let gitExtension = vscode.extensions.getExtension('vscode.git');
 	let api = gitExtension.exports.getAPI(1);
 	let selected = api.repositories.find((repo) => repo.rootUri.fsPath === scopePath);
-	let dataConfig = fs.readFileSync(pathConfigXml).toString();
+	pathConfigXml = pathConfigXml.replace(scopePath, "");
+	let dataConfig = fs.readFileSync(path.join(scopePath, pathConfigXml)).toString();
 
 	let message = selected.inputBox.value;
 	let version = dataConfig.match('<Version>(.+?)</Version>');
@@ -374,13 +376,29 @@ function setCurrentDatabase(name, scopePath) {
 
 function setCurrentPlatform(platformPath, scopePath) {
 
+	if (!platformPath) {
+		return;
+	}
+
 	const pathenv = path.join(scopePath, '.env');
 
 	if (!pathExists(pathenv)) {
 		fs.writeFileSync(pathenv, "")
-	}
+	};
 
 	let parsedFile = envfile.parse(fs.readFileSync(pathenv).toString());
+
+	if (platformPath.search("bin") === -1 && platformPath.search("opt") === -1) {
+
+		if (process.platform == 'linux') {
+			let pathbin = path.join("opt", "1cv8", "x86_64");
+			platformPath = path.join(pathbin, platformPath);
+		} else {
+			let pathbin = path.join(process.env.PROGRAMFILES, "1cv8");
+			platformPath = path.join(pathbin, platformPath, "bin");
+		}
+	}
+
 	parsedFile.PIE_V83_BIN = platformPath;
 	fs.writeFileSync(pathenv, envfile.stringify(parsedFile))
 }
